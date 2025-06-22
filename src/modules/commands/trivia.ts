@@ -5,6 +5,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MessageFlags,
 } from "discord.js";
 import { CATEGORIES_TABLE, getTrivia } from "../trivia";
 import { getInsult } from "../insults";
@@ -80,34 +81,36 @@ async function execute(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  // Prepare options: shuffle correct and incorrect answers
   const decodedIncorrect = question.incorrect_answers.map((a) =>
     decodeURIComponent(a)
   );
   const correctAnswer = decodeURIComponent(question.correct_answer);
-  const allAnswers = [...decodedIncorrect, correctAnswer] as string[];
-  // Shuffle answers
-  for (let i = allAnswers.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const temp = allAnswers[i] ?? "";
-    allAnswers[i] = allAnswers[j] ?? "";
-    allAnswers[j] = temp;
+  let allAnswers: string[];
+  let labels: string[];
+  let correctIndex: number;
+
+  if (question.type === "boolean") {
+    allAnswers = ["True", "False"];
+    labels = ["True", "False"];
+    correctIndex = correctAnswer.toLowerCase() === "true" ? 0 : 1;
+  } else {
+    allAnswers = [...decodedIncorrect, correctAnswer];
+    for (let i = allAnswers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp: string = allAnswers[i]!;
+      allAnswers[i] = allAnswers[j]!;
+      allAnswers[j] = temp;
+    }
+    labels = ["A", "B", "C", "D"];
+    correctIndex = allAnswers.indexOf(correctAnswer);
   }
-
-  // Map to button labels
-  const labels = ["A", "B", "C", "D"];
-  const correctIndex = allAnswers.indexOf(correctAnswer);
-
-  const decodedQuestion = decodeURIComponent(question.question);
-  const decodedCategory = question.category
-    ? decodeURIComponent(question.category)
-    : "Unknown";
+  const decodedCategory = decodeURIComponent(question.category);
 
   const embed = new EmbedBuilder()
     .setTitle("🎲 Trivia Time!")
-    .setDescription(`**${decodedQuestion}**`)
+    .setDescription(`**${decodeURIComponent(question.question)}**`)
     .addFields({
-      name: "Info",
+      name: "",
       value: [
         `**Category:** ${
           decodedCategory.charAt(0).toUpperCase() +
@@ -122,10 +125,13 @@ async function execute(interaction: ChatInputCommandInteraction) {
         }`,
         `**Type:** ${
           question.type === "multiple" ? "Multiple Choice" : "True/False"
-        }\n\n\n **Select an answer below:**`,
+        }\n\n\n`,
       ].join("\n"),
     })
-    .addFields({
+    .setColor(0x1d2439);
+
+  if (question.type === "multiple") {
+    embed.addFields({
       name: "Options",
       value: allAnswers
         .map(
@@ -133,23 +139,22 @@ async function execute(interaction: ChatInputCommandInteraction) {
             `**${labels[idx] ?? String.fromCharCode(65 + idx)}**: ${answer}`
         )
         .join("\n"),
-    })
-
-    .setColor(0x1d2439)
-    .setFooter({
-      text: await getInsult(),
     });
+  }
 
-  // Create answer buttons
   const optionsRow = new ActionRowBuilder<ButtonBuilder>();
   for (let i = 0; i < allAnswers.length; i++) {
+    let style = ButtonStyle.Primary;
+    if (question.type === "boolean") {
+      style = i === 0 ? ButtonStyle.Success : ButtonStyle.Danger;
+    }
     optionsRow.addComponents(
       new ButtonBuilder()
         .setCustomId(
           `trivia_answer_${i}_${i === correctIndex ? "correct" : "wrong"}`
         )
         .setLabel(labels[i] ?? String.fromCharCode(65 + i))
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(style)
     );
   }
 
@@ -159,8 +164,98 @@ async function execute(interaction: ChatInputCommandInteraction) {
   });
 }
 
+async function handleButton(
+  interaction: import("discord.js").ButtonInteraction
+) {
+  if (!interaction.customId.startsWith("trivia_answer_")) return;
+
+  if (interaction.replied || interaction.deferred) {
+    return;
+  }
+
+  const parts = interaction.customId.split("_");
+  const answerIdx = Number(parts[2]);
+  const isCorrect = parts[3] === "correct";
+
+  const originalEmbed = interaction.message.embeds[0];
+  if (!originalEmbed) return;
+  const updatedEmbed = EmbedBuilder.from(originalEmbed.toJSON());
+
+  let resultText = isCorrect
+    ? `**Answered correctly by <@${interaction.user.id}>!**`
+    : `**Answered incorrectly by <@${interaction.user.id}>!**`;
+
+  let correctAnswerText = "";
+  const optionsField = originalEmbed.fields?.find((f) => f.name === "Options");
+  if (optionsField && !isCorrect) {
+    const correctLine = optionsField.value
+      .split("\n")
+      .find((line) => line.includes("**: "));
+    if (correctLine)
+      correctAnswerText = `\n**Correct answer:** ${correctLine.split(": ")[1]}`;
+  }
+  if (!optionsField && !isCorrect) {
+    correctAnswerText = `\n**Correct answer:** ${
+      answerIdx === 0 ? "False" : "True"
+    }`;
+  }
+
+  updatedEmbed.setColor(isCorrect ? 0x2ecc40 : 0xe74c3c);
+  updatedEmbed.setDescription(
+    (originalEmbed.description || "") +
+      `\n\n${resultText}${!isCorrect ? correctAnswerText : ""}`
+  );
+
+  const rows = interaction.message.components
+    .filter(
+      (row) => "components" in row && Array.isArray((row as any).components)
+    )
+    .map((row) => {
+      const actionRow = row as any;
+      return {
+        ...row.toJSON(),
+        components: actionRow.components.map((comp: any, idx: number) => {
+          const isBtnCorrect =
+            comp.customId && comp.customId.endsWith("_correct");
+          const isBtnPressed = idx === answerIdx;
+          let style = ButtonStyle.Secondary;
+          if (isBtnCorrect) {
+            style = ButtonStyle.Success;
+          } else if (isBtnPressed && !isCorrect) {
+            style = ButtonStyle.Danger;
+          }
+          return {
+            ...comp.toJSON(),
+            style,
+            disabled: true,
+          };
+        }),
+      };
+    });
+
+  await interaction.message.edit({
+    embeds: [updatedEmbed],
+    components: rows,
+  });
+
+  const feedbackEmbed = new EmbedBuilder()
+    .setTitle(isCorrect ? "✅ Correct!" : "❌ Wrong!")
+    .setColor(isCorrect ? 0x2ecc40 : 0xe74c3c)
+    .setDescription(
+      isCorrect
+        ? "You selected the correct answer. Well done!"
+        : "That was not the correct answer. " + (await getInsult(0))
+    );
+
+  await interaction.reply({
+    embeds: [feedbackEmbed],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 export default {
   data,
   execute,
   cooldown: 5,
+  handleButton,
 };

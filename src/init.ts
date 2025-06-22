@@ -53,6 +53,9 @@ for (const file of commandFiles) {
   }
 }
 
+// Import trivia for button handling
+import trivia from "./modules/commands/trivia";
+
 // Bot Init
 export const init = (token: string) => {
   const client = new Client({
@@ -86,6 +89,11 @@ export const init = (token: string) => {
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
+    // Handle trivia answer buttons
+    if (interaction.isButton()) {
+      await trivia.handleButton(interaction);
+      return;
+    }
     if (!interaction.isChatInputCommand()) return;
 
     const command = commands.get(interaction.commandName);
