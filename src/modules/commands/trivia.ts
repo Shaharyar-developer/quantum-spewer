@@ -46,6 +46,10 @@ const data = new SlashCommandBuilder()
       )
   );
 
+// Timer map to track active trivia timers by message ID
+// Now stores { timeout, interval, timeLeft }
+const triviaTimers = new Map<string, { timeout: NodeJS.Timeout, interval: NodeJS.Timeout, timeLeft: number }>();
+
 async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
@@ -108,7 +112,10 @@ async function execute(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setTitle("🎲 Trivia Time!")
-    .setDescription(`**${decodeURIComponent(question.question)}**`)
+    .setDescription(
+      `**${decodeURIComponent(question.question)}**` +
+        `\n\n⏳ **Time left: 15s**`
+    )
     .addFields({
       name: "",
       value: [
@@ -162,6 +169,69 @@ async function execute(interaction: ChatInputCommandInteraction) {
     embeds: [embed],
     components: [optionsRow.toJSON()],
   });
+
+  const sentMsg = await interaction.fetchReply();
+  const messageId = sentMsg.id;
+  let timeLeft = 15;
+
+  // Helper to update the timer in the embed
+  const updateTimer = async () => {
+    const timerEmbed = EmbedBuilder.from(embed.toJSON());
+    // Replace the timer in the description using regex
+    let desc = embed.data.description || "";
+    desc = desc.replace(
+      /⏳ \*\*Time left: \d+s\*\*/,
+      `⏳ **Time left: ${timeLeft}s**`
+    );
+    timerEmbed.setDescription(desc);
+    await sentMsg.edit({
+      embeds: [timerEmbed],
+      components: [optionsRow.toJSON()],
+    });
+  };
+
+  // Start interval for countdown
+  const interval = setInterval(async () => {
+    timeLeft--;
+    if (timeLeft > 0) {
+      await updateTimer();
+    }
+  }, 1000);
+
+  // Timeout for when time runs out
+  const timeout = setTimeout(async () => {
+    if (!triviaTimers.has(messageId)) return;
+    triviaTimers.delete(messageId);
+    clearInterval(interval);
+    // Prepare the timeout embed and disabled buttons
+    const timeoutEmbed = EmbedBuilder.from(embed.toJSON());
+    // Remove timer and add time's up
+    let desc = embed.data.description || "";
+    desc = desc.replace(/⏳ \*\*Time left: \d+s\*\*/, `⏰ **Time's up!**`);
+    timeoutEmbed.setColor(0xe67e22);
+    timeoutEmbed.setDescription(desc);
+    const rows = [optionsRow.toJSON()].map((row) => {
+      return {
+        ...row,
+        components: row.components.map((comp: any, idx: number) => {
+          const isBtnCorrect =
+            comp.custom_id && comp.custom_id.endsWith("_correct");
+          return {
+            ...comp,
+            style: isBtnCorrect ? ButtonStyle.Success : ButtonStyle.Secondary,
+            disabled: true,
+          };
+        }),
+      };
+    });
+    await sentMsg.edit({
+      embeds: [timeoutEmbed],
+      components: rows,
+    });
+  }, 15000);
+  triviaTimers.set(messageId, { timeout, interval, timeLeft });
+  // Initial timer display
+  await updateTimer();
 }
 
 async function handleButton(
@@ -171,6 +241,15 @@ async function handleButton(
 
   if (interaction.replied || interaction.deferred) {
     return;
+  }
+
+  // Clear the timer and interval if someone answers
+  const messageId = interaction.message.id;
+  if (triviaTimers.has(messageId)) {
+    const { timeout, interval } = triviaTimers.get(messageId)!;
+    clearTimeout(timeout);
+    clearInterval(interval);
+    triviaTimers.delete(messageId);
   }
 
   const parts = interaction.customId.split("_");
