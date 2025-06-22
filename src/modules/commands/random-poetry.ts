@@ -23,7 +23,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setTitle(poem.title)
-    .setDescription("```" + poem.lines.join("\n") + "```")
+    .setDescription(poem.lines.join("\n"))
     .setColor(0xcba6f7)
     .addFields({ name: "Author", value: poem.author, inline: true })
     .addFields({
