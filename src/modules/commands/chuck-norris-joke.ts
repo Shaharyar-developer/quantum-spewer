@@ -2,24 +2,24 @@ import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
   EmbedBuilder,
+  MessageFlags,
 } from "discord.js";
 import { getInsult } from "../insults";
-import { UselessFact } from "../facts";
+import { getRandomChuckNorrisJoke } from "../chuck-norris";
 
 const data = new SlashCommandBuilder()
-  .setName("fact")
-  .setDescription(
-    "Replies with a random, completely and utterly useless fact."
-  );
+  .setName("chuck-norris")
+  .setDescription("Get a random Chuck Norris joke.");
 
 async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
-  const fact = await UselessFact.getRandomFact();
+
+  const joke = await getRandomChuckNorrisJoke();
   const insult = await getInsult();
 
   const embed = new EmbedBuilder()
-    .setTitle("Useless Fact")
-    .setDescription(fact)
+    .setTitle("Chuck Norris 🗿")
+    .setDescription(joke)
     .setColor(0xcba6f7)
     .setFooter({ text: insult });
 

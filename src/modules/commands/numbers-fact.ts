@@ -4,8 +4,8 @@ import {
   EmbedBuilder,
   MessageFlags,
 } from "discord.js";
+import { getInsult } from "../insults";
 import { getRandomNumberFact } from "../numbers";
-import { getCorpoInsult } from "../insults";
 
 export type NumbersCommandType = "math" | "trivia" | "date";
 
@@ -50,6 +50,8 @@ function createErrorEmbed(title: string, description: string) {
 }
 
 async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
   const type = interaction.options.getString(
     "type",
     true
@@ -80,15 +82,15 @@ async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const insult = await getCorpoInsult();
+  const insult = await getInsult();
 
   const embed = new EmbedBuilder()
     .setTitle("Number Fact")
     .setDescription(`**Fact:** ${fact}`)
     .setFooter({ text: insult })
-    .setColor(0x7289da);
+    .setColor(0xcba6f7);
 
-  await interaction.reply({ embeds: [embed] });
+  await interaction.editReply({ embeds: [embed] });
 }
 
 export default { data, execute, cooldown: 10 } as const;

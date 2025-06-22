@@ -13,6 +13,7 @@ import type {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
+import { getInsult } from "./modules/insults";
 
 // ESM workaround for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -54,10 +55,31 @@ for (const file of commandFiles) {
 
 // Bot Init
 export const init = (token: string) => {
-  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+  });
 
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  });
+
+  client.on(Events.MessageCreate, async (message) => {
+    if (!client.user) {
+      console.error("Client user is not defined.");
+      return;
+    }
+    // Only ignore messages from itself, not other bots
+    if (message.author.id === client.user.id) return;
+
+    if (message.mentions.has(client.user)) {
+      await message.reply({
+        content: message.author.displayName + `, ${await getInsult(0)}`,
+      });
+    }
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
