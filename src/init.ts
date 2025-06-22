@@ -87,7 +87,7 @@ export const init = (token: string) => {
       if (now < expirationTime) {
         const expiredTimestamp = Math.round(expirationTime / 1000);
         return interaction.reply({
-          content: `Have you no patience for the \`${command.data.name}\`. Thou must wait, for the cooldown shall reset <t:${expiredTimestamp}:R>.`,
+          content: `Pray, thou must wait ere thou usest the \`${command.data.name}\` command again. Return <t:${expiredTimestamp}:R>, good traveler.`,
           flags: MessageFlags.Ephemeral,
         });
       }
