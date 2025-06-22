@@ -5,7 +5,7 @@ import {
   MessageFlags,
 } from "discord.js";
 import { getInsult } from "../insults";
-import { getRandomJoke, getDadJoke } from "../jokes";
+import { getRandomJoke, getDadJoke, getYoMamaJoke } from "../jokes";
 
 const data = new SlashCommandBuilder()
   .setName("joke")
@@ -17,7 +17,8 @@ const data = new SlashCommandBuilder()
       .setRequired(true)
       .addChoices(
         { name: "Random Joke", value: "random" },
-        { name: "Dad Joke", value: "dad" }
+        { name: "Dad Joke", value: "dad" },
+        { name: "Yo Mama Joke", value: "yo-mama" }
       )
   );
 
@@ -31,6 +32,8 @@ async function execute(interaction: ChatInputCommandInteraction) {
     joke = await getRandomJoke();
   } else if (type === "dad") {
     joke = await getDadJoke();
+  } else if (type === "yo-mama") {
+    joke = await getYoMamaJoke();
   }
 
   if (!joke) {

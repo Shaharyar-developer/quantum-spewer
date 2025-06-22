@@ -38,3 +38,16 @@ export async function getRandomJoke(): Promise<
   }
   return "No joke found.";
 }
+
+export async function getYoMamaJoke(): Promise<string> {
+  const url = "https://www.yomama-jokes.com/api/v1/jokes/random";
+  try {
+    const response = await axios.get(url);
+    if (response.status === 200 && response.data) {
+      return response.data.joke;
+    }
+  } catch (error) {
+    console.error("Error fetching yo mama joke:", error);
+  }
+  return "No yo mama joke found.";
+}

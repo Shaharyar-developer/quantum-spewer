@@ -75,6 +75,9 @@ export const init = (token: string) => {
     // Only ignore messages from itself, not other bots
     if (message.author.id === client.user.id) return;
 
+    // Ignore message from certain author
+    if (message.author.username === ".fenryx.") return;
+
     if (message.mentions.has(client.user)) {
       await message.reply({
         content: message.author.displayName + `, ${await getInsult(0)}`,
