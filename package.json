@@ -8,6 +8,8 @@
     "dev": "bun run --watch src/index.ts",
     "deploy:commands": "bun run scripts/deploy-commands.ts",
     "test": "bun test",
+    "db:generate": "bun drizzle-kit generate",
+    "db:migrate": "bun drizzle-kit migrate",
     "db:push": "bun drizzle-kit push",
     "doc:generate": "typedoc --entryPointStrategy Expand src",
     "doc:clear": "rm -rf docs"

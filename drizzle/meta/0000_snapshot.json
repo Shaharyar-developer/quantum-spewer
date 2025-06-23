@@ -1,0 +1,35 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "d1f7ab24-08c9-4dfe-bf86-a0cc178eab29",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "banned_words": {
+      "name": "banned_words",
+      "columns": {
+        "word": {
+          "name": "word",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
