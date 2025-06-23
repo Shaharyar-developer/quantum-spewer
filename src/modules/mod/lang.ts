@@ -62,41 +62,41 @@ class LanguageModeration {
   }
 
   /**
-   * Adds a new word to the banned list and updates the regex.
-   * @param word The word to ban.
-   * @returns True if added, false if already present or on error.
+   * Adds new words to the banned list and updates the regex.
+   * @param words The words to ban.
+   * @returns Array of booleans: true if added, false if already present or on error.
    */
-  public async addBannedWord(words: string[]): Promise<boolean> {
+  public async addBannedWord(words: string[]): Promise<boolean[]> {
     await this.ensureReady();
-    if (!words || words.length === 0) return false;
-    // Case-insensitive check
-    if (
-      LanguageModeration.bannedWords.some((w) =>
-        words.includes(w.toLowerCase())
-      )
-    )
-      return false;
-    try {
-      await db
-        .insert(bannedWords)
-        .values(words.map((word) => ({ word: word.toLowerCase() })));
-      LanguageModeration.bannedWords.push(...words);
-      // Update the regex after adding a new word
-      const escaped = LanguageModeration.bannedWords.map((w) =>
-        w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      );
-      if (escaped.length > 0) {
-        LanguageModeration.bannedRegex = new RegExp(
-          `\\b(${escaped.join("|")})\\b`,
-          "iu"
-        );
-      } else {
-        LanguageModeration.bannedRegex = null;
+    if (!words || words.length === 0) return [];
+    const results: boolean[] = [];
+    for (const word of words) {
+      const lower = word.toLowerCase();
+      if (LanguageModeration.bannedWords.includes(lower)) {
+        results.push(false);
+        continue;
       }
-      return true;
-    } catch {
-      return false;
+      try {
+        await db.insert(bannedWords).values({ word: lower });
+        LanguageModeration.bannedWords.push(lower);
+        results.push(true);
+      } catch {
+        results.push(false);
+      }
     }
+    // Update the regex after adding new words
+    const escaped = LanguageModeration.bannedWords.map((w) =>
+      w.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")
+    );
+    if (escaped.length > 0) {
+      LanguageModeration.bannedRegex = new RegExp(
+        `\\b(${escaped.join("|")})\\b`,
+        "iu"
+      );
+    } else {
+      LanguageModeration.bannedRegex = null;
+    }
+    return results;
   }
 
   /**
