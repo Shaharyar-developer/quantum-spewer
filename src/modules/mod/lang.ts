@@ -160,6 +160,51 @@ class LanguageModeration {
   }
 
   /**
+   * Removes words from the banned list and updates the regex.
+   * @param words The words to unban.
+   * @returns Array of booleans: true if removed, false if not present or on error.
+   */
+  public async removeBannedWords(words: string[]): Promise<boolean[]> {
+    await this.ensureReady();
+    if (!words || words.length === 0) return [];
+    const results: boolean[] = [];
+    for (const word of words) {
+      if (!word) {
+        results.push(false);
+        continue;
+      }
+      // Case-insensitive check
+      const index = LanguageModeration.bannedWords.findIndex(
+        (w) => w.toLowerCase() === word.toLowerCase()
+      );
+      if (index === -1) {
+        results.push(false);
+        continue;
+      }
+      try {
+        await db.delete(bannedWords).where(eq(bannedWords.word, word));
+        LanguageModeration.bannedWords.splice(index, 1);
+        results.push(true);
+      } catch {
+        results.push(false);
+      }
+    }
+    // Update the regex after removing words
+    const escaped = LanguageModeration.bannedWords.map((w) =>
+      w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
+    if (escaped.length > 0) {
+      LanguageModeration.bannedRegex = new RegExp(
+        `\\b(${escaped.join("|")})\\b`,
+        "iu"
+      );
+    } else {
+      LanguageModeration.bannedRegex = null;
+    }
+    return results;
+  }
+
+  /**
    * Checks if the provided content contains any banned words as stems (using stemming) or similar (Levenshtein distance <= 1).
    * @param content The content to check.
    * @returns True if content is clean, false if any banned word is found.

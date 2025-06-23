@@ -123,23 +123,55 @@ async function execute(interaction: ChatInputCommandInteraction) {
       if (!word) {
         const embed = new EmbedBuilder()
           .setTitle(":warning: Missing Word")
-          .setDescription("Please provide a word to unban.")
+          .setDescription("Please provide word(s) to unban.")
           .setColor(0xffcc00);
         return await interaction.editReply({ embeds: [embed] });
       }
-      const removed = await LanguageModeration.removeBannedWord(word);
+      // Support comma-separated words for removal
+      const words = word
+        .split(",")
+        .map((w) => w.trim())
+        .filter((w, i, arr) => w.length > 0 && arr.indexOf(w) === i);
+      if (words.length === 0) {
+        const embed = new EmbedBuilder()
+          .setTitle(":warning: No Valid Words")
+          .setDescription("No valid words provided to unban.")
+          .setColor(0xffcc00);
+        return await interaction.editReply({ embeds: [embed] });
+      }
+      let removed: boolean[] = [];
+      if (words.length === 1) {
+        // For single word, use the original method for backward compatibility
+        removed = [await LanguageModeration.removeBannedWord(words[0]!)];
+      } else {
+        removed = await LanguageModeration.removeBannedWords(words);
+      }
+      let removedWords: string[] = [];
+      let notBanned: string[] = [];
+      removed.forEach((result, idx) => {
+        const w = words[idx] ?? "";
+        if (result && w) removedWords.push(w);
+        else if (w) notBanned.push(w);
+      });
       const embed = new EmbedBuilder()
         .setTitle(
-          removed
-            ? ":white_check_mark: Word Unbanned"
+          removedWords.length > 0
+            ? ":white_check_mark: Word(s) Unbanned"
             : ":information_source: Not Banned"
         )
         .setDescription(
-          removed
-            ? `The word **${word}** has been **removed** from the banned list.`
-            : `The word **${word}** is not banned or could not be removed.`
+          (removedWords.length > 0
+            ? `The following word(s) have been **removed** from the banned list: **${removedWords.join(
+                ", "
+              )}**\n`
+            : "") +
+            (notBanned.length > 0
+              ? `The following word(s) were not banned or could not be removed: **${notBanned.join(
+                  ", "
+                )}**`
+              : "")
         )
-        .setColor(removed ? 0x00ff00 : 0x1d2439);
+        .setColor(removedWords.length > 0 ? 0x00ff00 : 0x1d2439);
       return await interaction.editReply({ embeds: [embed] });
     }
     case "list": {
