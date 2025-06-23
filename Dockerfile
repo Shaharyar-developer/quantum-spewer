@@ -4,14 +4,13 @@ FROM oven/bun:latest
 # Set the working directory inside the container
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 
-# Copy package.json and bun.lockb (if present) to install dependencies
+# Copy package.json and bun.lock (if present) to install dependencies
 COPY package.json bun.lock ./
 
 # Install project dependencies
-RUN bun install --frozen-lockfile
+RUN bun install 
 
 # Copy the rest of the application files
 COPY . .
