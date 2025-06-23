@@ -86,7 +86,7 @@ class LanguageModeration {
     }
     // Update the regex after adding new words
     const escaped = LanguageModeration.bannedWords.map((w) =>
-      w.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")
+      w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     );
     if (escaped.length > 0) {
       LanguageModeration.bannedRegex = new RegExp(
