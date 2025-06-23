@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+mkdir -p "$HOME/sqlite-backups"
 BACKUP_DIR="$HOME/sqlite-backups"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DB_FILE="$SCRIPT_DIR/../data/sqlite.db"
