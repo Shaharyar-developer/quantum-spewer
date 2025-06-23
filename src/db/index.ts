@@ -7,7 +7,7 @@ let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 function getDb() {
   if (!dbInstance) {
     dbInstance = drizzle({
-      connection: { source: process.env.DB_FILE_NAME! || "sqlite.db" },
+      connection: { source: process.env.DB_FILE_NAME! || "/data/sqlite.db" },
       schema,
     });
   }

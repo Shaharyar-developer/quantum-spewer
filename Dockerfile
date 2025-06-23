@@ -15,6 +15,9 @@ RUN bun install
 # Copy the rest of the application files
 COPY . .
 
+# Ensure the /data directory exists
+RUN mkdir -p /data
+
 # Expose the port
 EXPOSE 3000
 
