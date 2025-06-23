@@ -13,7 +13,7 @@ import {
 import { getInsult } from "./modules/insults";
 import trivia from "./modules/commands/trivia";
 import { gloat } from "./lib/utils";
-import { MASTER_IDS } from "./lib/constants";
+import { MASTER_IDS, MODERATION_ROLE_IDS } from "./lib/constants";
 import LanguageModeration from "./modules/mod/lang";
 
 /**
@@ -110,9 +110,20 @@ export const init = (token: string) => {
     // Only ignore messages from itself, not other bots
     if (message.author.id === client.user.id) return;
 
-    // Respond with a fun fact if the master user is mentioned directly (not as a reply)
+    // Respond with a fun fact if a master or moderation user is mentioned directly (not as a reply)
     message.mentions.members?.forEach(async (element) => {
-      if (MASTER_IDS.includes(element.user.id) && !message.reference) {
+      const isMaster = MASTER_IDS.includes(element.user.id);
+      let isMod = false;
+      if (
+        element.roles &&
+        "cache" in element.roles &&
+        typeof element.roles.cache.has === "function"
+      ) {
+        isMod = MODERATION_ROLE_IDS.some((roleId) =>
+          element.roles.cache.has(roleId)
+        );
+      }
+      if ((isMaster || isMod) && !message.reference) {
         // Use the member's display name for gloat
         const displayName = element.displayName || element.user.username;
         await message.reply({
