@@ -4,9 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "start": "bun run db:push && bun run src/index.ts",
     "dev": "bun run --watch src/index.ts",
     "deploy:commands": "bun run scripts/deploy-commands.ts",
     "test": "bun test",
+    "db:push": "bun drizzle-kit push",
     "doc:generate": "typedoc --entryPointStrategy Expand src",
     "doc:clear": "rm -rf docs"
   },
