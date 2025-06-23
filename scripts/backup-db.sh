@@ -1,21 +1,29 @@
 #!/bin/bash
 set -e
-mkdir -p "$HOME/sqlite-backups"
-BACKUP_DIR="$HOME/sqlite-backups"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DB_FILE="$HOME/quantum-spewer/data/sqlite.db"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKUP_DIR="$PROJECT_ROOT/sqlite-backups"
+DB_FILE="$PROJECT_ROOT/data/sqlite.db"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$BACKUP_DIR/backup.log"
 
 mkdir -p "$BACKUP_DIR"
 
-{
-    echo "[$(date)] Starting backup..."
-    echo "[$(date)] Database file: $DB_FILE"
-    if [ -f "$DB_FILE" ]; then
-        cp "$DB_FILE" "$BACKUP_DIR/sqlite_${TIMESTAMP}.db"
-        echo "[$(date)] Backup completed: $BACKUP_DIR/sqlite_${TIMESTAMP}.db"
+log() {
+    echo "[$(date)] $1" | tee -a "$LOG_FILE"
+}
+
+log "=== Backup Script Started ==="
+log "Project root: $PROJECT_ROOT"
+log "Backup directory: $BACKUP_DIR"
+log "Database file: $DB_FILE"
+if [ -f "$DB_FILE" ]; then
+    log "Database file exists. Proceeding with backup."
+    if cp "$DB_FILE" "$BACKUP_DIR/sqlite_${TIMESTAMP}.db"; then
+        log "Backup completed: $BACKUP_DIR/sqlite_${TIMESTAMP}.db"
     else
-        echo "[$(date)] Database file does not exist. Skipping backup."
+        log "ERROR: Failed to copy database file!"
     fi
-} >> "$LOG_FILE" 2>&1
+else
+    log "WARNING: Database file does not exist. Skipping backup."
+fi
+log "=== Backup Script Finished ==="
