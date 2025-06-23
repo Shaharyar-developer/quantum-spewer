@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BACKUP_DIR="$PROJECT_ROOT/sqlite-backups"
+BACKUP_DIR="$HOME/sqlite-backups"
 DB_FILE="$PROJECT_ROOT/data/sqlite.db"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$BACKUP_DIR/backup.log"
