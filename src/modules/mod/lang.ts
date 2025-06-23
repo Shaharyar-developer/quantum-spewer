@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../db";
 import { bannedWords } from "../../db/schema";
 import leventshtein from "fastest-levenshtein";
+import natural from "natural";
 
 /**
  * Moderation class for managing and checking banned words in content.
@@ -159,7 +160,7 @@ class LanguageModeration {
   }
 
   /**
-   * Checks if the provided content contains any banned words as whole words or similar (Levenshtein distance <= 1).
+   * Checks if the provided content contains any banned words as stems (using stemming) or similar (Levenshtein distance <= 1).
    * @param content The content to check.
    * @returns True if content is clean, false if any banned word is found.
    */
@@ -167,11 +168,32 @@ class LanguageModeration {
     await this.ensureReady();
     if (!content) return true;
     if (!LanguageModeration.bannedWords.length) return true;
-    if (
-      LanguageModeration.bannedRegex &&
-      LanguageModeration.bannedRegex.test(content)
-    ) {
-      return false;
+    const tokenizer = new natural.WordTokenizer();
+    const stemmer = natural.PorterStemmer;
+    // Precompute stemmed banned words
+    const bannedStems = LanguageModeration.bannedWords.map((w) =>
+      stemmer.stem(w.toLowerCase())
+    );
+    const words = tokenizer.tokenize(content);
+    for (const word of words) {
+      const stemmed = stemmer.stem(word.toLowerCase());
+      if (bannedStems.includes(stemmed)) {
+        return false;
+      }
+      // Fuzzy match (Levenshtein) only for words of length >= 5
+      if (word.length >= 5) {
+        for (const bannedWord of LanguageModeration.bannedWords) {
+          if (
+            bannedWord.length >= 5 &&
+            natural.LevenshteinDistance(
+              word.toLowerCase(),
+              bannedWord.toLowerCase()
+            ) <= 1
+          ) {
+            return false;
+          }
+        }
+      }
     }
     return true;
   }
