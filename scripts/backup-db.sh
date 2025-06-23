@@ -12,6 +12,10 @@ mkdir -p "$BACKUP_DIR"
 {
     echo "[$(date)] Starting backup..."
     echo "[$(date)] Database file: $DB_FILE"
-    cp "$DB_FILE" "$BACKUP_DIR/sqlite_${TIMESTAMP}.db"
-    echo "[$(date)] Backup completed: $BACKUP_DIR/sqlite_${TIMESTAMP}.db"
+    if [ -f "$DB_FILE" ]; then
+        cp "$DB_FILE" "$BACKUP_DIR/sqlite_${TIMESTAMP}.db"
+        echo "[$(date)] Backup completed: $BACKUP_DIR/sqlite_${TIMESTAMP}.db"
+    else
+        echo "[$(date)] Database file does not exist. Skipping backup."
+    fi
 } >> "$LOG_FILE" 2>&1
