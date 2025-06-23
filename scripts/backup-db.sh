@@ -3,7 +3,7 @@ set -e
 mkdir -p "$HOME/sqlite-backups"
 BACKUP_DIR="$HOME/sqlite-backups"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DB_FILE="$SCRIPT_DIR/../data/sqlite.db"
+DB_FILE="$HOME/quantum-spewer/data/sqlite.db"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$BACKUP_DIR/backup.log"
 
