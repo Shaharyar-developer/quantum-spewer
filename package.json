@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run db:push && deploy:commands && bun run src/index.ts",
+    "start": "bun run db:push && bun run deploy:commands && bun run src/index.ts",
     "dev": "bun run --watch src/index.ts",
     "deploy:commands": "bun run scripts/deploy-commands.ts",
     "test": "bun test",

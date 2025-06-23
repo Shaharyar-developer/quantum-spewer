@@ -128,7 +128,7 @@ export const init = (token: string) => {
     });
 
     // Ignore further processing if the message is from the master user
-    // if (MASTER_IDS.includes(message.author.id)) return;
+    if (MASTER_IDS.includes(message.author.id)) return;
 
     // If the bot is mentioned or a specific role is mentioned, reply with an insult
     if (
