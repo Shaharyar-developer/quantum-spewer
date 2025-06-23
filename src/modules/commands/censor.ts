@@ -50,8 +50,9 @@ async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   const subcommand = interaction.options.getSubcommand(true);
-  const word = interaction.options.getString("word");
-
+  const word =
+    interaction.options.getString("words") ||
+    interaction.options.getString("word");
   switch (subcommand) {
     case "add": {
       if (!hasModerationRole(interaction)) {

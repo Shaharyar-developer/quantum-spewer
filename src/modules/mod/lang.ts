@@ -167,27 +167,11 @@ class LanguageModeration {
     await this.ensureReady();
     if (!content) return true;
     if (!LanguageModeration.bannedWords.length) return true;
-    // Check for exact banned word match (whole word)
     if (
       LanguageModeration.bannedRegex &&
       LanguageModeration.bannedRegex.test(content)
     ) {
       return false;
-    }
-    // Check for fuzzy match (Levenshtein distance <= 1) after stripping non-alphabetic chars
-    const words = content.split(/\s+/);
-    for (const wordRaw of words) {
-      const word = wordRaw.replace(/[^a-zA-Z]/g, "");
-      if (!word) continue;
-      for (const bannedRaw of LanguageModeration.bannedWords) {
-        const bannedWord = bannedRaw.replace(/[^a-zA-Z]/g, "");
-        if (!bannedWord) continue;
-        if (word.length === bannedWord.length) {
-          if (leventshtein.distance(word, bannedWord) <= 1) {
-            return false;
-          }
-        }
-      }
     }
     return true;
   }

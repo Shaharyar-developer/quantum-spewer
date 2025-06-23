@@ -128,7 +128,7 @@ export const init = (token: string) => {
     });
 
     // Ignore further processing if the message is from the master user
-    if (MASTER_IDS.includes(message.author.id)) return;
+    // if (MASTER_IDS.includes(message.author.id)) return;
 
     // If the bot is mentioned or a specific role is mentioned, reply with an insult
     if (
@@ -161,7 +161,9 @@ export const init = (token: string) => {
       await message.delete();
       const embed = {
         title: ":no_entry: Thy Missive Hath Been Expunged",
-        description: `Verily, thy utterance hath transgressed the bounds of permitted discourse and thus hath been consigned to oblivion. Refrain henceforth from employing such forbidden parlance, lest graver consequences befall thee. ${await getInsult(0)}`,
+        description: `Verily, thy utterance hath transgressed the bounds of permitted discourse and thus hath been consigned to oblivion. Refrain henceforth from employing such forbidden parlance, lest graver consequences befall thee. ${await getInsult(
+          0
+        )}`,
         color: 0xff0000,
       };
       await message.channel
