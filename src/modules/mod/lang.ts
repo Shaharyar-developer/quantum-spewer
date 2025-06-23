@@ -1,0 +1,199 @@
+import { eq } from "drizzle-orm";
+import db from "../../db";
+import { bannedWords } from "../../db/schema";
+import leventshtein from "fastest-levenshtein";
+
+/**
+ * Moderation class for managing and checking banned words in content.
+ * Handles loading, adding, removing, and matching banned words as whole words only.
+ */
+class LanguageModeration {
+  /** List of banned words loaded from the database. */
+  private static bannedWords: string[] = [];
+  /** Compiled regex for matching banned words as whole words, case-insensitive and Unicode-aware. */
+  private static bannedRegex: RegExp | null = null;
+  /** Promise that resolves when the moderation service is ready for use. */
+  private static loadingPromise: Promise<void> | null = null;
+  /** Indicates if the moderation service is ready for use. */
+  private isReady: boolean = false;
+
+  /**
+   * Initializes the Moderation service and loads banned words from the database.
+   */
+  constructor() {
+    if (!LanguageModeration.loadingPromise) {
+      LanguageModeration.loadingPromise = this.loadBannedWords();
+    }
+    LanguageModeration.loadingPromise.then(() => {
+      this.isReady = true;
+    });
+  }
+
+  /**
+   * Ensures the moderation service is ready before proceeding.
+   */
+  private async ensureReady() {
+    if (LanguageModeration.loadingPromise) {
+      await LanguageModeration.loadingPromise;
+      this.isReady = true;
+    }
+  }
+
+  /**
+   * Loads banned words from the database and compiles the regex for matching.
+   */
+  private async loadBannedWords() {
+    const words = await db.query.bannedWords.findMany();
+    LanguageModeration.bannedWords = words.map((row) => row.word);
+    // Escape regex special characters and join with | for alternation
+    const escaped = LanguageModeration.bannedWords.map((w) =>
+      w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
+    // Only create regex if there are banned words
+    if (escaped.length > 0) {
+      LanguageModeration.bannedRegex = new RegExp(
+        `\\b(${escaped.join("|")})\\b`,
+        "iu"
+      );
+    } else {
+      LanguageModeration.bannedRegex = null;
+    }
+  }
+
+  /**
+   * Adds a new word to the banned list and updates the regex.
+   * @param word The word to ban.
+   * @returns True if added, false if already present or on error.
+   */
+  public async addBannedWord(words: string[]): Promise<boolean> {
+    await this.ensureReady();
+    if (!words || words.length === 0) return false;
+    // Case-insensitive check
+    if (
+      LanguageModeration.bannedWords.some((w) =>
+        words.includes(w.toLowerCase())
+      )
+    )
+      return false;
+    try {
+      await db
+        .insert(bannedWords)
+        .values(words.map((word) => ({ word: word.toLowerCase() })));
+      LanguageModeration.bannedWords.push(...words);
+      // Update the regex after adding a new word
+      const escaped = LanguageModeration.bannedWords.map((w) =>
+        w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      );
+      if (escaped.length > 0) {
+        LanguageModeration.bannedRegex = new RegExp(
+          `\\b(${escaped.join("|")})\\b`,
+          "iu"
+        );
+      } else {
+        LanguageModeration.bannedRegex = null;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Retrieves the list of currently banned words.
+   * @returns Array of banned words.
+   */
+  public getBannedWords(): string[] {
+    return LanguageModeration.bannedWords;
+  }
+
+  /**
+   * Finds a banned word that is similar to the given word using Levenshtein distance.
+   * @param word The word to check for fuzzy matches.
+   * @returns The matched banned word if found, otherwise null.
+   */
+  public async fuzzyFindBannedWord(word: string): Promise<string | null> {
+    await this.ensureReady();
+    if (!word) return null;
+    const threshold = 1;
+    for (const bannedWord of LanguageModeration.bannedWords) {
+      const distance = leventshtein.distance(word, bannedWord);
+      if (distance <= threshold) {
+        return bannedWord;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Removes a word from the banned list and updates the regex.
+   * @param word The word to unban.
+   * @returns True if removed, false if not present or on error.
+   */
+  public async removeBannedWord(word: string): Promise<boolean> {
+    await this.ensureReady();
+    if (!word) return false;
+    // Case-insensitive check
+    const index = LanguageModeration.bannedWords.findIndex(
+      (w) => w.toLowerCase() === word.toLowerCase()
+    );
+    if (index === -1) return false;
+    try {
+      await db.delete(bannedWords).where(eq(bannedWords.word, word));
+      LanguageModeration.bannedWords.splice(index, 1);
+      // Update the regex after removing a word
+      const escaped = LanguageModeration.bannedWords.map((w) =>
+        w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      );
+      if (escaped.length > 0) {
+        LanguageModeration.bannedRegex = new RegExp(
+          `\\b(${escaped.join("|")})\\b`,
+          "iu"
+        );
+      } else {
+        LanguageModeration.bannedRegex = null;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Checks if the provided content contains any banned words as whole words or similar (Levenshtein distance <= 1).
+   * @param content The content to check.
+   * @returns True if content is clean, false if any banned word is found.
+   */
+  public async isContentSafe(content: string): Promise<boolean> {
+    await this.ensureReady();
+    if (!content) return true;
+    if (!LanguageModeration.bannedWords.length) return true;
+    // Check for exact banned word match (whole word)
+    if (
+      LanguageModeration.bannedRegex &&
+      LanguageModeration.bannedRegex.test(content)
+    ) {
+      return false;
+    }
+    // Check for fuzzy match (Levenshtein distance <= 1) after stripping non-alphabetic chars
+    const words = content.split(/\s+/);
+    for (const wordRaw of words) {
+      const word = wordRaw.replace(/[^a-zA-Z]/g, "");
+      if (!word) continue;
+      for (const bannedRaw of LanguageModeration.bannedWords) {
+        const bannedWord = bannedRaw.replace(/[^a-zA-Z]/g, "");
+        if (!bannedWord) continue;
+        if (word.length === bannedWord.length) {
+          if (leventshtein.distance(word, bannedWord) <= 1) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+}
+
+/**
+ * Singleton instance of LanguageModeration for use throughout the application.
+ */
+export default new LanguageModeration();
