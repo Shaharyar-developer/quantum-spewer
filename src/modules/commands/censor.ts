@@ -2,6 +2,11 @@ import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
   EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  type ButtonInteraction,
 } from "discord.js";
 import LanguageModeration from "../mod/lang";
 import { hasModerationRole } from "../../lib/utils";
@@ -45,6 +50,84 @@ const data = new SlashCommandBuilder()
           .setRequired(true)
       )
   );
+
+/**
+ * Creates pagination buttons for the banned words list
+ * @param currentPage Current page number (0-indexed)
+ * @param totalPages Total number of pages
+ * @param disabled Whether buttons should be disabled
+ * @returns ActionRowBuilder with navigation buttons
+ */
+function createPaginationButtons(
+  currentPage: number,
+  totalPages: number,
+  disabled: boolean = false
+): ActionRowBuilder<ButtonBuilder> {
+  const row = new ActionRowBuilder<ButtonBuilder>();
+
+  // Previous button
+  row.addComponents(
+    new ButtonBuilder()
+      .setCustomId("censor_list_prev")
+      .setLabel("◀ Previous")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(disabled || currentPage === 0)
+  );
+
+  // Page indicator
+  row.addComponents(
+    new ButtonBuilder()
+      .setCustomId("censor_list_page")
+      .setLabel(`${currentPage + 1}/${totalPages}`)
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(true)
+  );
+
+  // Next button
+  row.addComponents(
+    new ButtonBuilder()
+      .setCustomId("censor_list_next")
+      .setLabel("Next ▶")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(disabled || currentPage === totalPages - 1)
+  );
+
+  return row;
+}
+
+/**
+ * Creates an embed for a specific page of banned words
+ * @param bannedWords Array of all banned words
+ * @param page Current page number (0-indexed)
+ * @param wordsPerPage Number of words to show per page
+ * @returns EmbedBuilder for the current page
+ */
+function createBannedWordsEmbed(
+  bannedWords: string[],
+  page: number,
+  wordsPerPage: number = 50
+): EmbedBuilder {
+  const totalPages = Math.ceil(bannedWords.length / wordsPerPage);
+  const start = page * wordsPerPage;
+  const end = Math.min(start + wordsPerPage, bannedWords.length);
+  const pageWords = bannedWords.slice(start, end);
+
+  const embed = new EmbedBuilder()
+    .setTitle(":no_entry: Banned Words")
+    .setDescription(
+      "```\n" +
+        pageWords.map((w, i) => `${start + i + 1}. ${w}`).join("\n") +
+        "\n```"
+    )
+    .setColor(0xff0000)
+    .setFooter({
+      text: `Page ${page + 1}/${totalPages} • Total: ${
+        bannedWords.length
+      } words`,
+    });
+
+  return embed;
+}
 
 async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
@@ -182,6 +265,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
           .setColor(0xff0000);
         return await interaction.editReply({ embeds: [embed] });
       }
+
       const bannedWords = LanguageModeration.getBannedWords();
       if (bannedWords.length === 0) {
         const embed = new EmbedBuilder()
@@ -190,16 +274,96 @@ async function execute(interaction: ChatInputCommandInteraction) {
           .setColor(0x00ff00);
         return await interaction.editReply({ embeds: [embed] });
       }
-      const embed = new EmbedBuilder()
-        .setTitle(":no_entry: Banned Words")
-        .setDescription(
-          "```\n" +
-            bannedWords.map((w, i) => `${i + 1}. ${w}`).join("\n") +
-            "\n```"
-        )
-        .setColor(0xff0000)
-        .setFooter({ text: `Total: ${bannedWords.length}` });
-      return await interaction.editReply({ embeds: [embed] });
+
+      const wordsPerPage = 50;
+      const totalPages = Math.ceil(bannedWords.length / wordsPerPage);
+      let currentPage = 0;
+
+      // If there's only one page, don't show pagination buttons
+      if (totalPages === 1) {
+        const embed = createBannedWordsEmbed(bannedWords, 0, wordsPerPage);
+        return await interaction.editReply({ embeds: [embed] });
+      }
+
+      // Create initial embed and buttons
+      const embed = createBannedWordsEmbed(
+        bannedWords,
+        currentPage,
+        wordsPerPage
+      );
+      const buttons = createPaginationButtons(currentPage, totalPages);
+
+      const response = await interaction.editReply({
+        embeds: [embed],
+        components: [buttons],
+      });
+
+      // Create button collector
+      const collector = response.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+        time: 300_000, // 5 minutes
+        filter: (buttonInteraction: ButtonInteraction) =>
+          buttonInteraction.user.id === interaction.user.id,
+      });
+
+      collector.on("collect", async (buttonInteraction: ButtonInteraction) => {
+        // Check permissions again for button interactions
+        if (!hasModerationRole(interaction)) {
+          const permissionEmbed = new EmbedBuilder()
+            .setTitle(":no_entry: Insufficient Permissions")
+            .setDescription("You do not have permission to use this command.")
+            .setColor(0xff0000);
+          return await buttonInteraction.reply({
+            embeds: [permissionEmbed],
+            ephemeral: true,
+          });
+        }
+
+        if (
+          buttonInteraction.customId === "censor_list_prev" &&
+          currentPage > 0
+        ) {
+          currentPage--;
+        } else if (
+          buttonInteraction.customId === "censor_list_next" &&
+          currentPage < totalPages - 1
+        ) {
+          currentPage++;
+        } else {
+          // Page indicator button or invalid action
+          return await buttonInteraction.deferUpdate();
+        }
+
+        const newEmbed = createBannedWordsEmbed(
+          bannedWords,
+          currentPage,
+          wordsPerPage
+        );
+        const newButtons = createPaginationButtons(currentPage, totalPages);
+
+        await buttonInteraction.update({
+          embeds: [newEmbed],
+          components: [newButtons],
+        });
+      });
+
+      collector.on("end", async () => {
+        // Disable buttons when collector expires
+        const disabledButtons = createPaginationButtons(
+          currentPage,
+          totalPages,
+          true
+        );
+        try {
+          await interaction.editReply({
+            components: [disabledButtons],
+          });
+        } catch {
+          // Ignore errors if message was deleted
+        }
+      });
+
+      return;
     }
     case "search": {
       if (!hasModerationRole(interaction)) {

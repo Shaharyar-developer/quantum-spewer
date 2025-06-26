@@ -20,6 +20,14 @@ if [ -f "$DB_FILE" ]; then
     log "Database file exists. Proceeding with backup."
     if cp "$DB_FILE" "$BACKUP_DIR/sqlite_${TIMESTAMP}.db"; then
         log "Backup completed: $BACKUP_DIR/sqlite_${TIMESTAMP}.db"
+        # Keep only the 20 latest backups
+        BACKUP_FILES=( $(ls -1t "$BACKUP_DIR"/sqlite_*.db 2>/dev/null) )
+        if [ ${#BACKUP_FILES[@]} -gt 20 ]; then
+            for OLD_FILE in "${BACKUP_FILES[@]:20}"; do
+                rm -f "$OLD_FILE"
+                log "Deleted old backup: $OLD_FILE"
+            done
+        fi
     else
         log "ERROR: Failed to copy database file!"
     fi

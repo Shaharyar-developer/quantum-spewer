@@ -1,10 +1,9 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { getRandomChuckNorrisJoke } from "../modules/chuck-norris";
 import { MODERATION_ROLE_IDS, MASTER_IDS } from "./constants";
-
 export const gloat = async (name: string): Promise<string> => {
   const joke = await getRandomChuckNorrisJoke();
-  return joke.replace(/Chuck Norris|Chuck|Norris/g, name);
+  return joke.replace(/chuck norris|norris|chuck/gi, name);
 };
 
 export function hasModerationRole(
