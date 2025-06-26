@@ -205,9 +205,9 @@ class LanguageModeration {
   }
 
   /**
-   * Checks if the provided content contains any banned words as stems (using stemming) or similar (Levenshtein distance <= 1).
+   * Checks if the provided content contains any banned words or phrases (including stemming and fuzzy matching for words).
    * @param content The content to check.
-   * @returns True if content is clean, false if any banned word is found.
+   * @returns True if content is clean, false if any banned word or phrase is found.
    */
   public async isContentSafe(content: string): Promise<boolean> {
     await this.ensureReady();
@@ -219,6 +219,14 @@ class LanguageModeration {
     const bannedStems = LanguageModeration.bannedWords.map((w) =>
       stemmer.stem(w.toLowerCase())
     );
+    const lowerContent = content.toLowerCase();
+    // First, check for banned phrases (those containing spaces)
+    for (const banned of LanguageModeration.bannedWords) {
+      if (banned.includes(" ") && lowerContent.includes(banned.toLowerCase())) {
+        return false;
+      }
+    }
+    // Then, check for single word bans (stemming and fuzzy)
     const words = tokenizer.tokenize(content);
     for (const word of words) {
       const stemmed = stemmer.stem(word.toLowerCase());
@@ -229,6 +237,7 @@ class LanguageModeration {
       if (word.length >= 5) {
         for (const bannedWord of LanguageModeration.bannedWords) {
           if (
+            !bannedWord.includes(" ") &&
             bannedWord.length >= 5 &&
             natural.LevenshteinDistance(
               word.toLowerCase(),
