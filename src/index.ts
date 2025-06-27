@@ -8,5 +8,9 @@ declare global {
 }
 
 assert(process.env.DISCORD_TOKEN, "DISCORD_TOKEN is not set");
+assert(process.env.CLIENT_ID, "CLIENT_ID is not set");
+assert(process.env.GUILD_ID, "GUILD_ID is not set");
+assert(process.env.LOG_CHANNEL_ID, "LOG_CHANNEL_ID is not set");
+
 
 init(process.env.DISCORD_TOKEN);

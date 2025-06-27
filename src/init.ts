@@ -138,17 +138,64 @@ export const init = (token: string) => {
       await message.delete();
       const embed = {
         title: ":no_entry: Thy Missive Hath Been Expunged",
-        description: `Verily, thy utterance hath transgressed the bounds of permitted discourse and thus hath been consigned to oblivion. Refrain henceforth from employing such forbidden parlance, lest graver consequences befall thee. ${await getInsult(
-          0
-        )}`,
+        description: `Verily, thy utterance hath transgressed the bounds of permitted discourse and thus hath been consigned to oblivion. Refrain henceforth from employing such forbidden parlance, lest graver consequences befall thee.`,
         color: 0xff0000,
       };
-      await message.channel
+      // Send warning embed and delete after 5 seconds
+      const warningMsg = await message.channel
         .send({
           content: `<@${message.author.id}>,`,
           embeds: [embed],
         })
         .catch(console.error);
+      if (warningMsg && typeof warningMsg.delete === "function") {
+        setTimeout(() => {
+          warningMsg.delete().catch(() => {});
+        }, 5000);
+      }
+
+      // Logging censored message in log channel
+      try {
+        const logChannelId = process.env.LOG_CHANNEL_ID;
+        if (logChannelId) {
+          const logChannel = await message.guild?.channels.fetch(logChannelId);
+          if (logChannel && logChannel.isTextBased()) {
+            const logEmbed = {
+              title: "🚨 Message Censored",
+              description: `A message was censored for banned content.`,
+              color: 0xff5555,
+              fields: [
+                {
+                  name: "User",
+                  value: `<@${message.author.id}> (${message.author.tag})`,
+                  inline: true,
+                },
+                {
+                  name: "Channel",
+                  value: `<#${message.channel.id}>`,
+                  inline: true,
+                },
+                {
+                  name: "Message ID",
+                  value: message.id,
+                  inline: true,
+                },
+                {
+                  name: "Message Content",
+                  value: `\u200B${message.content}`,
+                },
+              ],
+              timestamp: new Date().toISOString(),
+              footer: {
+                text: `User ID: ${message.author.id}`,
+              },
+            };
+            await logChannel.send({ embeds: [logEmbed] });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to log censored message:", err);
+      }
     }
   });
 
