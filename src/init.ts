@@ -15,6 +15,7 @@ import trivia from "./modules/commands/trivia";
 import { gloat } from "./lib/utils";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "./lib/constants";
 import LanguageModeration from "./modules/mod/lang";
+import morse from "./lib/morse-code";
 
 export type Command = {
   data: SlashCommandBuilder;
@@ -195,6 +196,40 @@ export const init = (token: string) => {
       } catch (err) {
         console.error("Failed to log censored message:", err);
       }
+    }
+
+    // Morse code encode/decode commands
+    if (message.content.startsWith("encode! ")) {
+      const toEncode = message.content.slice(8).trim();
+      if (toEncode.length > 0) {
+        const encoded = morse.encode(toEncode);
+        await message.reply({
+          embeds: [
+            {
+              title: "Morse Code Encoded",
+              description: `\u200B\n**Input:**\n\`${toEncode}\`\n\n**Morse:**\n\`${encoded}\``,
+              color: 0x89b4fa,
+            },
+          ],
+        });
+      }
+      return;
+    }
+    if (message.content.startsWith("decode! ")) {
+      const toDecode = message.content.slice(8).trim();
+      if (toDecode.length > 0) {
+        const decoded = morse.decode(toDecode);
+        await message.reply({
+          embeds: [
+            {
+              title: "Morse Code Decoded",
+              description: `\u200B\n**Morse:**\n\`${toDecode}\`\n\n**Output:**\n\`${decoded}\``,
+              color: 0xa6e3a1,
+            },
+          ],
+        });
+      }
+      return;
     }
   });
 
