@@ -148,7 +148,7 @@ export const init = (token: string) => {
       } catch (err) {
         console.error("[RoleColor] Error in role color interval:", err);
       }
-    }, 60 * 1000);
+    }, 5 * 60 * 1000);
   });
 
   client.on(Events.MessageCreate, async (message) => {
