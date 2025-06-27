@@ -98,22 +98,10 @@ export const init = (token: string) => {
       }
     });
 
-    // Insult for bot/role mention (unless master/mod)
-    if (
-      message.mentions.has(client.user) ||
-      message.content.includes("<@&1386122719938216040>")
-    ) {
-      const isMaster = MASTER_IDS.includes(message.author.id);
-      let isMod = false;
-      if (
-        message.member?.roles?.cache &&
-        typeof message.member.roles.cache.has === "function"
-      ) {
-        isMod = MODERATION_ROLE_IDS.some((roleId) =>
-          message.member?.roles?.cache?.has(roleId)
-        );
-      }
-      if (!(isMaster || isMod)) {
+    // Insult for bot mention only (not for role or user mentions)
+    if (message.mentions.has(client.user)) {
+      // Only insult if the author is a bot (not a user)
+      if (message.author.bot) {
         const targetUserId = "881043694554337361";
         let targetName = targetUserId;
         try {
