@@ -233,17 +233,16 @@ class LanguageModeration {
       if (bannedStems.includes(stemmed)) {
         return false;
       }
-      // Improved fuzzy match: only for words of length >= 6, and first char must match
+      // Improved fuzzy match: only for words of length >= 7, and first two chars must match
       if (word.length >= 7) {
         for (const bannedWord of LanguageModeration.bannedWords) {
           if (
             !bannedWord.includes(" ") &&
             bannedWord.length >= 7 &&
-            word.length > 0 &&
-            bannedWord.length > 0 &&
-            word[0] !== undefined &&
-            bannedWord[0] !== undefined &&
-            word[0].toLowerCase() === bannedWord[0].toLowerCase() &&
+            word.length > 1 &&
+            bannedWord.length > 1 &&
+            word.slice(0, 2).toLowerCase() ===
+              bannedWord.slice(0, 2).toLowerCase() &&
             natural.LevenshteinDistance(
               word.toLowerCase(),
               bannedWord.toLowerCase()
