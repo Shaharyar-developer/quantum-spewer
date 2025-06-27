@@ -100,10 +100,20 @@ export const init = (token: string) => {
 
     // Insult for bot mention only (not for role or user mentions)
     if (message.mentions.has(client.user)) {
-      // Only insult if the author is a bot (not a user)
-      if (message.author.bot) {
-        const targetUserId = "881043694554337361";
-        // const targetUserId = message.author.id;
+      // Only insult if the author is NOT a master or moderator
+      const isMaster = MASTER_IDS.includes(message.author.id);
+      let isMod = false;
+      if (
+        message.member?.roles?.cache &&
+        typeof message.member.roles.cache.has === "function"
+      ) {
+        isMod = MODERATION_ROLE_IDS.some((roleId) =>
+          message.member?.roles?.cache?.has(roleId)
+        );
+      }
+      if (!(isMaster || isMod)) {
+        // const targetUserId = "881043694554337361";
+        const targetUserId = message.author.id;
         let targetName = targetUserId;
         try {
           const member = await message.guild?.members.fetch(targetUserId);
