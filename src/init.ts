@@ -102,7 +102,8 @@ export const init = (token: string) => {
     if (message.mentions.has(client.user)) {
       // Only insult if the author is a bot (not a user)
       if (message.author.bot) {
-        const targetUserId = "881043694554337361";
+        // const targetUserId = "881043694554337361";
+        const targetUserId = message.author.id;
         let targetName = targetUserId;
         try {
           const member = await message.guild?.members.fetch(targetUserId);
