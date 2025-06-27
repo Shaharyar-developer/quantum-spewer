@@ -12,10 +12,11 @@ import {
 } from "discord.js";
 import { getInsult } from "./modules/insults";
 import trivia from "./modules/commands/trivia";
-import { gloat } from "./lib/utils";
+import { getRandomWord, gloat } from "./lib/utils";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "./lib/constants";
 import LanguageModeration from "./modules/mod/lang";
 import morse from "./lib/morse-code";
+import morseCode from "./lib/morse-code";
 
 export type Command = {
   data: SlashCommandBuilder;
@@ -61,11 +62,93 @@ export const init = (token: string) => {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.GuildMembers,
     ],
   });
 
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+
+    // Set interval to revert nicknames for non-mod/master members
+    setInterval(async () => {
+      try {
+        const guilds = client.guilds.cache;
+        for (const [, guild] of guilds) {
+          // Fetch all members
+          await guild.members.fetch();
+          let changedCount = 0;
+          let errorCount = 0;
+          for (const member of guild.members.cache.values()) {
+            if (member.user.bot) continue;
+            const isMaster = MASTER_IDS.includes(member.id);
+            let isMod = false;
+            if (
+              member.roles &&
+              member.roles.cache &&
+              typeof member.roles.cache.has === "function"
+            ) {
+              isMod = MODERATION_ROLE_IDS.some((roleId) =>
+                member.roles.cache.has(roleId)
+              );
+            }
+            if (!(isMaster || isMod)) {
+              // Always set a new random nickname every interval
+              try {
+                const randomNick = await getRandomWord();
+                await member.setNickname(
+                  randomNick,
+                  "Random nickname for non-mod/master (interval update)"
+                );
+                changedCount++;
+              } catch (err) {
+                errorCount++;
+                console.error(
+                  `[NickRevert] Failed to set random nickname for ${member.user.tag}:`,
+                  err
+                );
+              }
+            }
+          }
+          if (changedCount > 0 || errorCount > 0) {
+            console.log(
+              `[NickRevert] Guild: ${guild.name} | Nicknames changed: ${changedCount}, errors: ${errorCount}`
+            );
+          }
+        }
+      } catch (err) {
+        console.error("[NickRevert] Error in nickname revert interval:", err);
+      }
+    }, 30 * 1000);
+
+    // Set interval to randomly change the color of all roles (except managed/integration roles and excluded IDs)
+    const EXCLUDED_ROLE_IDS = ["1322851154962546780", "1388215640577413221"];
+    setInterval(async () => {
+      try {
+        const guilds = client.guilds.cache;
+        for (const [, guild] of guilds) {
+          await guild.roles.fetch();
+          let changedRoles = 0;
+          for (const role of guild.roles.cache.values()) {
+            if (role.managed) continue;
+            if (EXCLUDED_ROLE_IDS.includes(role.id)) continue;
+            const randomColor = Math.floor(Math.random() * 0xffffff);
+            try {
+              await role.setColor(randomColor, "Random color update");
+              changedRoles++;
+            } catch (err) {
+              // Ignore errors for roles the bot can't edit
+            }
+          }
+          if (changedRoles > 0) {
+            console.log(
+              `[RoleColor] Guild: ${guild.name} | Roles colored: ${changedRoles}`
+            );
+          }
+        }
+      } catch (err) {
+        console.error("[RoleColor] Error in role color interval:", err);
+      }
+    }, 60 * 1000);
   });
 
   client.on(Events.MessageCreate, async (message) => {
@@ -98,6 +181,65 @@ export const init = (token: string) => {
         });
       }
     });
+
+    // Convert all text messages to "author: message" format, only allow alphanumeric
+    // Only convert messages to morse in the specified channel, acting as an intermediary with a translation button
+    const MORSE_CODE_CHANNEL_ID = process.env.MORSE_CODE_CHANNEL_ID;
+    if (
+      MORSE_CODE_CHANNEL_ID &&
+      message.channel.id === MORSE_CODE_CHANNEL_ID &&
+      message.content &&
+      message.content.length > 0
+    ) {
+      // Remove all non-alphanumeric characters (except space)
+      const alphanumeric = message.content.replace(/[^a-zA-Z0-9 ]/g, "");
+      if (alphanumeric.length > 0) {
+        const morseEncoded = morseCode.encode(alphanumeric);
+        await message.delete().catch(() => {});
+        await message.channel.send({
+          embeds: [
+            {
+              description: `**From:** <@${message.author.id}>\n\n\`${morseEncoded}\``,
+              color: 0x89b4fa,
+            },
+          ],
+          components: [
+            {
+              type: 1, // ActionRow
+              components: [
+                {
+                  type: 2, // Button
+                  style: 2, // Secondary
+                  label: "Show Translation",
+                  custom_id: `show-translation-${message.id}`,
+                },
+                {
+                  type: 2, // Button
+                  style: 4, // Danger
+                  label: "Delete",
+                  custom_id: `delete-morse-${message.id}-${message.author.id}`,
+                },
+              ],
+            },
+          ],
+        });
+        return;
+      } else {
+        // If nothing left after filtering, send a warning embed and delete
+        await message.delete().catch(() => {});
+        await message.channel.send({
+          embeds: [
+            {
+              title: "🚫 Only Alphanumeric Allowed",
+              description:
+                "Please use **letters and numbers only** in this channel. Non-alphanumeric content is not permitted.",
+              color: 0xff5555,
+            },
+          ],
+        });
+        return;
+      }
+    }
 
     // Insult for bot mention only (not for role or user mentions)
     if (message.mentions.has(client.user)) {
@@ -157,8 +299,12 @@ export const init = (token: string) => {
       // Logging censored message in log channel
       try {
         const logChannelId = process.env.LOG_CHANNEL_ID;
-        if (logChannelId) {
-          const logChannel = await message.guild?.channels.fetch(logChannelId);
+        if (
+          logChannelId &&
+          message.guild &&
+          message.guild.channels.cache.has(logChannelId)
+        ) {
+          const logChannel = await message.guild.channels.fetch(logChannelId);
           if (logChannel && logChannel.isTextBased()) {
             const logEmbed = {
               title: "🚨 Message Censored",
@@ -203,7 +349,7 @@ export const init = (token: string) => {
       const toEncode = message.content.slice(8).trim();
       if (toEncode.length > 0) {
         const encoded = morse.encode(toEncode);
-        await message.reply({
+        await message.channel.send({
           embeds: [
             {
               title: "Morse Code Encoded",
@@ -213,13 +359,14 @@ export const init = (token: string) => {
           ],
         });
       }
+      message.delete().catch(() => {});
       return;
     }
     if (message.content.startsWith("decode! ")) {
       const toDecode = message.content.slice(8).trim();
       if (toDecode.length > 0) {
         const decoded = morse.decode(toDecode);
-        await message.reply({
+        await message.channel.send({
           embeds: [
             {
               title: "Morse Code Decoded",
@@ -229,6 +376,7 @@ export const init = (token: string) => {
           ],
         });
       }
+      message.delete().catch(() => {});
       return;
     }
     // Plaintext encode/decode commands
@@ -236,24 +384,75 @@ export const init = (token: string) => {
       const toEncode = message.content.slice(9).trim();
       if (toEncode.length > 0) {
         const encoded = morse.encode(toEncode);
-        await message.reply(encoded);
+        await message.channel.send(encoded);
       }
+      message.delete().catch(() => {});
+
       return;
     }
     if (message.content.startsWith("decodep! ")) {
       const toDecode = message.content.slice(9).trim();
       if (toDecode.length > 0) {
         const decoded = morse.decode(toDecode);
-        await message.reply(decoded);
+        await message.channel.send(decoded);
       }
+      message.delete().catch(() => {});
+
       return;
     }
   });
 
+  // Register a single InteractionCreate handler for all buttons and commands
   client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton()) {
-      await trivia.handleButton(interaction);
-      return;
+      // Trivia button handler
+      if (
+        interaction.customId &&
+        interaction.customId.startsWith("trivia_answer_")
+      ) {
+        if (!interaction.replied && !interaction.deferred) {
+          await trivia.handleButton(interaction);
+        }
+        return;
+      }
+      // Morse code translation button handler
+      if (
+        interaction.customId &&
+        interaction.customId.startsWith("show-translation-")
+      ) {
+        if (!interaction.replied && !interaction.deferred) {
+          const embed = interaction.message.embeds[0];
+          if (!embed || !embed.description) return;
+          const morseMatch = embed.description.match(/`([^`]*)`/);
+          if (!morseMatch) return;
+          const morseText = morseMatch[1];
+          const translation = morseCode.decode(morseText ?? "");
+          await interaction.reply({
+            content: `**Translation:**\n\`${translation}\``,
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+        return;
+      }
+      // Morse code delete button handler
+      if (
+        interaction.customId &&
+        interaction.customId.startsWith("delete-morse-")
+      ) {
+        const parts = interaction.customId.split("-");
+        const originalAuthorId = parts[3];
+        if (interaction.user.id !== originalAuthorId) {
+          await interaction.reply({
+            content: "Only the original author can delete this message.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+        await interaction.message.delete().catch(() => {});
+        // Optionally, acknowledge the deletion
+        // await interaction.reply({ content: "Message deleted.", ephemeral: true });
+        return;
+      }
     }
     if (!interaction.isChatInputCommand()) return;
 
