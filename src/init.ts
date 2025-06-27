@@ -231,6 +231,23 @@ export const init = (token: string) => {
       }
       return;
     }
+    // Plaintext encode/decode commands
+    if (message.content.startsWith("encodep! ")) {
+      const toEncode = message.content.slice(9).trim();
+      if (toEncode.length > 0) {
+        const encoded = morse.encode(toEncode);
+        await message.reply(encoded);
+      }
+      return;
+    }
+    if (message.content.startsWith("decodep! ")) {
+      const toDecode = message.content.slice(9).trim();
+      if (toDecode.length > 0) {
+        const decoded = morse.decode(toDecode);
+        await message.reply(decoded);
+      }
+      return;
+    }
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {

@@ -54,7 +54,7 @@ const codes: Record<string, string> = {
   _: "..--.-",
   $: "...-..-",
   "&": ".-...",
-  " ": "/", // Space between words
+  " ": "/",
 };
 
 // Reverse mapping for decoding
