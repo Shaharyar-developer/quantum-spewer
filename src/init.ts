@@ -120,7 +120,7 @@ export const init = (token: string) => {
       }
     }, 30 * 1000);
 
-    // Set interval to randomly change the color of all roles (except managed/integration roles and excluded IDs)
+    // Set interval to randomly change the color of all roles (except managed/integration roles, excluded IDs, or roles with "serpent" in the name)
     const EXCLUDED_ROLE_IDS = ["1322851154962546780", "1388215640577413221"];
     setInterval(async () => {
       try {
@@ -131,6 +131,7 @@ export const init = (token: string) => {
           for (const role of guild.roles.cache.values()) {
             if (role.managed) continue;
             if (EXCLUDED_ROLE_IDS.includes(role.id)) continue;
+            if (role.name.toLowerCase().includes("serpent")) continue;
             const randomColor = Math.floor(Math.random() * 0xffffff);
             try {
               await role.setColor(randomColor, "Random color update");
