@@ -9,6 +9,7 @@ import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
   MessageFlags,
+  EmbedBuilder,
 } from "discord.js";
 import { getInsult } from "./modules/insults";
 import trivia from "./modules/commands/trivia";
@@ -399,6 +400,26 @@ export const init = (token: string) => {
       }
       message.delete().catch(() => {});
 
+      return;
+    }
+    if (message.content.startsWith("embed! ")) {
+      const toEmbed = message.content.slice(7).trim();
+      if (toEmbed.length > 0) {
+        await message.channel.send({
+          embeds: [
+            {
+              description: toEmbed,
+              color: 0x89b4fa,
+              timestamp: undefined,
+              author: {
+                name: message.author.username,
+                icon_url: message.author.displayAvatarURL(),
+              },
+            },
+          ],
+        });
+      }
+      message.delete().catch(() => {});
       return;
     }
   });
