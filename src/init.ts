@@ -404,19 +404,31 @@ export const init = (token: string) => {
     }
     if (message.content.startsWith("embed! ")) {
       const toEmbed = message.content.slice(7).trim();
-      if (toEmbed.length > 0) {
+      const isSafe = await LanguageModeration.isContentSafe(toEmbed);
+      if (!isSafe) {
+        await message.delete().catch(() => {});
         await message.channel.send({
           embeds: [
             {
-              description: toEmbed,
-              color: 0x89b4fa,
-              timestamp: undefined,
-              author: {
-                name: message.author.username,
-                icon_url: message.author.displayAvatarURL(),
-              },
+              title: ":no_entry: Thy Missive Hath Been Expunged",
+              description: `Verily, thy utterance hath transgressed the bounds of permitted discourse and thus hath been consigned to oblivion. Refrain henceforth from employing such forbidden parlance, lest graver consequences befall thee.`,
+              color: 0xff0000,
             },
           ],
+        });
+        return;
+      }
+      const embed = new EmbedBuilder()
+        .setDescription(toEmbed)
+        .setColor(0x89b4fa)
+        .setTimestamp()
+        .setAuthor({
+          name: message.author.username,
+          iconURL: message.author.displayAvatarURL(),
+        });
+      if (toEmbed.length > 0) {
+        await message.channel.send({
+          embeds: [embed],
         });
       }
       message.delete().catch(() => {});
