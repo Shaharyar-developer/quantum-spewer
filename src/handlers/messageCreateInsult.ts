@@ -2,7 +2,7 @@ import { Events, Client, Message } from "discord.js";
 import { getInsult } from "../modules/insults";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "../lib/constants";
 
-export default function handleMessageCreateInsult(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;

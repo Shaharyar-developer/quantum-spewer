@@ -1,7 +1,7 @@
 import { Events, Client, Message, TextChannel } from "discord.js";
 import LanguageModeration from "../modules/mod/lang";
 
-export default function handleMessageUpdateModeration(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageUpdate, async (_oldMessage, newMessage) => {
     if (newMessage.partial || !newMessage.content) return;
     if (!client.user) return;

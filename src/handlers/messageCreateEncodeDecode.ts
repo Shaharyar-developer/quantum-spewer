@@ -1,7 +1,7 @@
 import { Events, Client, Message, TextChannel } from "discord.js";
 import morse from "../lib/morse-code";
 
-export default function handleMessageCreateEncodeDecode(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;

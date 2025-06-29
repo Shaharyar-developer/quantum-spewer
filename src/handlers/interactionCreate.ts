@@ -4,6 +4,7 @@ import {
   Client,
   Collection,
   Message,
+  MessageFlags,
   TextChannel,
   EmbedBuilder,
 } from "discord.js";
@@ -11,7 +12,7 @@ import trivia from "../modules/commands/trivia";
 import morseCode from "../lib/morse-code";
 import LanguageModeration from "../modules/mod/lang";
 
-export default function handleInteractionCreate(
+export default function handler(
   client: Client,
   commands: Collection<string, Command>,
   cooldowns: Collection<string, Collection<string, number>>
@@ -52,7 +53,7 @@ export default function handleInteractionCreate(
           const translation = morseCode.decode(morseText ?? "");
           await interaction.reply({
             content: `**Translation:**\n\`${translation}\``,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
         return;
@@ -71,7 +72,7 @@ export default function handleInteractionCreate(
         if (interaction.user.id !== originalAuthorId) {
           await interaction.reply({
             content: "Only the original author can delete this message.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
@@ -91,7 +92,7 @@ export default function handleInteractionCreate(
         if (interaction.user.id !== creatorId) {
           await interaction.reply({
             content: "Only the creator of this embed can delete it.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
@@ -111,14 +112,14 @@ export default function handleInteractionCreate(
         if (interaction.user.id !== creatorId) {
           await interaction.reply({
             content: "Only the creator of this embed can edit it.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
         await interaction.reply({
           content:
             "Send a new message with the new embed content within 60 seconds.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         if (!interaction.channel) return;
         const textChannel = interaction.channel as TextChannel;
@@ -153,7 +154,7 @@ export default function handleInteractionCreate(
           if (collected.size === 0) {
             interaction.followUp({
               content: "No new content received. Edit cancelled.",
-              ephemeral: true,
+              flags: MessageFlags.Ephemeral,
             });
           }
         });
@@ -188,7 +189,7 @@ export default function handleInteractionCreate(
         const expiredTimestamp = Math.round(expirationTime / 1000);
         return interaction.reply({
           content: `Pray, thou must wait ere thou usest the \`${command.data.name}\` command again. Return <t:${expiredTimestamp}:R>, good traveler.`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     }
@@ -205,12 +206,12 @@ export default function handleInteractionCreate(
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp({
           content: "There was an error while executing this command!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       } else {
         await interaction.reply({
           content: "There was an error while executing this command!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     }

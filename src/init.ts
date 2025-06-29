@@ -5,21 +5,11 @@ import {
   Collection,
   Client,
   GatewayIntentBits,
-  Events,
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
-  MessageFlags,
-  EmbedBuilder,
-  TextChannel,
-  Message,
 } from "discord.js";
-import { getInsult } from "./modules/insults";
-import trivia from "./modules/commands/trivia";
 import { getRandomWord, gloat } from "./lib/utils";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "./lib/constants";
-import LanguageModeration from "./modules/mod/lang";
-import morse from "./lib/morse-code";
-import morseCode from "./lib/morse-code";
 
 export type Command = {
   data: SlashCommandBuilder;
@@ -60,16 +50,10 @@ for (const file of commandFiles) {
 }
 
 import handleClientReady from "./handlers/clientReady";
-import handleMessageCreateEncodeDecode from "./handlers/messageCreateEncodeDecode";
-import handleMessageCreateFunFact from "./handlers/messageCreateFunFact";
-import handleMessageCreateInsult from "./handlers/messageCreateInsult";
-import handleMessageCreateModeration from "./handlers/messageCreateModeration";
-import handleMessageCreateMorse from "./handlers/messageCreateMorse";
 import handleMessageUpdateModeration from "./handlers/messageUpdateModeration";
 import handleInteractionCreate from "./handlers/interactionCreate";
-import handleMessageCreateEmbed from "./handlers/messageCreateEmbed";
 
-export const init = (token: string) => {
+export const init = async (token: string) => {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -81,12 +65,24 @@ export const init = (token: string) => {
 
   // Register all event handlers
   handleClientReady(client, MASTER_IDS, MODERATION_ROLE_IDS, getRandomWord);
-  handleMessageCreateEmbed(client);
-  handleMessageCreateEncodeDecode(client);
-  handleMessageCreateFunFact(client);
-  handleMessageCreateInsult(client);
-  handleMessageCreateModeration(client);
-  handleMessageCreateMorse(client);
+
+  // Auto-register all messageCreate handlers
+  const handlersPath = path.join(__dirname, "handlers");
+  const handlerFiles = fs
+    .readdirSync(handlersPath)
+    .filter(
+      (file) =>
+        file.startsWith("messageCreate") &&
+        (file.endsWith(".js") || file.endsWith(".ts"))
+    );
+  for (const file of handlerFiles) {
+    const filePath = path.join(handlersPath, file);
+    const { default: handler } = await import(`file://${filePath}`);
+    if (typeof handler === "function") {
+      handler(client);
+    }
+  }
+
   handleMessageUpdateModeration(client);
   handleInteractionCreate(client, commands, cooldowns);
 

@@ -2,7 +2,7 @@ import { Events, Client } from "discord.js";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "../lib/constants";
 import { gloat } from "../lib/utils";
 
-export default function handleMessageCreateFunFact(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;

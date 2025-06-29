@@ -1,6 +1,6 @@
 import { Events, Client } from "discord.js";
 
-export default function handleClientReady(
+export default function handler(
   client: Client,
   MASTER_IDS: string[],
   MODERATION_ROLE_IDS: string[],

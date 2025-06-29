@@ -1,7 +1,7 @@
 import { Client, Events, EmbedBuilder, Message } from "discord.js";
 import LanguageModeration from "../modules/mod/lang";
 
-export default function handleMessageCreateEmbed(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;

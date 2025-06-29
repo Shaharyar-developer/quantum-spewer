@@ -1,7 +1,7 @@
 import { Events, Client, Message } from "discord.js";
 import LanguageModeration from "../modules/mod/lang";
 
-export default function handleMessageCreateModeration(client: Client) {
+export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;

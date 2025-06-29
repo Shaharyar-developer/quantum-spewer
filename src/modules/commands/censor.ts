@@ -315,7 +315,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
             .setColor(0xff0000);
           return await buttonInteraction.reply({
             embeds: [permissionEmbed],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
 
