@@ -146,6 +146,8 @@ export default function handleInteractionCreate(
             .setDescription(newContent)
             .setTimestamp();
           await interaction.message.edit({ embeds: [newEmbed] });
+          // Delete the user's message after successful edit
+          await m.delete().catch(() => {});
         });
         collector.on("end", (collected, _reason) => {
           if (collected.size === 0) {
