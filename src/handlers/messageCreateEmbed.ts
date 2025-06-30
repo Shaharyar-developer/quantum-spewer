@@ -9,7 +9,7 @@ export default function handler(client: Client) {
 
     const toEmbed = message.content.slice(7).trim();
     const isSafe = await LanguageModeration.isContentSafe(toEmbed);
-    if (!isSafe) {
+    if (!isSafe || !message.content.startsWith("embed! ")) {
       await message.delete().catch(() => {});
       if (
         "send" in message.channel &&

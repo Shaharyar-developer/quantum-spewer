@@ -50,8 +50,14 @@ for (const file of commandFiles) {
 }
 
 import handleClientReady from "./handlers/clientReady";
-import handleMessageUpdateModeration from "./handlers/messageUpdateModeration";
 import handleInteractionCreate from "./handlers/interactionCreate";
+import handleMessageUpdateModeration from "./handlers/messageUpdateModeration";
+import handleMessageCreateModeration from "./handlers/messageCreateModeration";
+import handleMessageCreateEmbed from "./handlers/messageCreateEmbed";
+import handleMessageCreateEncodeDecode from "./handlers/messageCreateEncodeDecode";
+import handleMessageCreateFunFact from "./handlers/messageCreateFunFact";
+import handleMessageCreateInsult from "./handlers/messageCreateInsult";
+import handleMessageCreateMorse from "./handlers/messageCreateMorse";
 
 export const init = async (token: string) => {
   const client = new Client({
@@ -65,24 +71,12 @@ export const init = async (token: string) => {
 
   // Register all event handlers
   handleClientReady(client, MASTER_IDS, MODERATION_ROLE_IDS, getRandomWord);
-
-  // Auto-register all messageCreate handlers
-  const handlersPath = path.join(__dirname, "handlers");
-  const handlerFiles = fs
-    .readdirSync(handlersPath)
-    .filter(
-      (file) =>
-        file.startsWith("messageCreate") &&
-        (file.endsWith(".js") || file.endsWith(".ts"))
-    );
-  for (const file of handlerFiles) {
-    const filePath = path.join(handlersPath, file);
-    const { default: handler } = await import(`file://${filePath}`);
-    if (typeof handler === "function") {
-      handler(client);
-    }
-  }
-
+  handleMessageCreateModeration(client);
+  handleMessageCreateEmbed(client);
+  handleMessageCreateEncodeDecode(client);
+  handleMessageCreateFunFact(client);
+  handleMessageCreateInsult(client);
+  handleMessageCreateMorse(client);
   handleMessageUpdateModeration(client);
   handleInteractionCreate(client, commands, cooldowns);
 
