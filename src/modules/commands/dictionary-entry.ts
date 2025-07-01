@@ -53,10 +53,27 @@ async function execute(interaction: ChatInputCommandInteraction) {
           return str;
         })
         .join("\n\n");
-      embed.addFields({
-        name: meaning.partOfSpeech,
-        value: value.length > 0 ? value : "No definitions found.",
-      });
+      // Split value into chunks of 1024 characters (Discord embed field limit)
+      const chunkSize = 1024;
+      if (value.length > chunkSize) {
+        let i = 0;
+        while (i < value.length) {
+          const chunk = value.slice(i, i + chunkSize);
+          embed.addFields({
+            name:
+              i === 0
+                ? meaning.partOfSpeech
+                : meaning.partOfSpeech + " (cont.)",
+            value: chunk,
+          });
+          i += chunkSize;
+        }
+      } else {
+        embed.addFields({
+          name: meaning.partOfSpeech,
+          value: value.length > 0 ? value : "No definitions found.",
+        });
+      }
     });
   }
 
