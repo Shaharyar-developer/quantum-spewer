@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../db";
 import { bannedWords } from "../../db/schema";
 import leventshtein from "fastest-levenshtein";
-import natural from "natural";
+import natural, { removeDiacritics } from "natural";
 import { BANNED_CHARACTERS_SET } from "../../lib/constants";
 
 /**
@@ -212,6 +212,8 @@ class LanguageModeration {
    */
   public async isContentSafe(content: string): Promise<boolean> {
     await this.ensureReady();
+    content = removeDiacritics(content.trim());
+    content = content.toLowerCase();
     if (!content) return true;
     if (!LanguageModeration.bannedWords.length) return true;
     content.split("").forEach((char) => {
