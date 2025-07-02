@@ -1,8 +1,10 @@
 import axios from "axios";
 
 export const getInsult = async (ratio = 0.65): Promise<string> => {
-  const lang = Math.random() < ratio ? "en_corporate" : "en";
-  const url = `https://insult.mattbas.org/api/insult?lang=${lang}`;
+  const useCorporate = Math.random() < ratio;
+  const url = useCorporate
+    ? "https://insult.mattbas.org/api/insult?lang=en_corporate"
+    : "https://evilinsult.com/generate_insult.php?lang=en";
   const fallbackInsult =
     "Let's circle back and touch base offline about your bandwidth.";
 

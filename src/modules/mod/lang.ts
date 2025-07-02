@@ -3,6 +3,7 @@ import db from "../../db";
 import { bannedWords } from "../../db/schema";
 import leventshtein from "fastest-levenshtein";
 import natural from "natural";
+import { BANNED_CHARACTERS_SET } from "../../lib/constants";
 
 /**
  * Moderation class for managing and checking banned words in content.
@@ -213,6 +214,11 @@ class LanguageModeration {
     await this.ensureReady();
     if (!content) return true;
     if (!LanguageModeration.bannedWords.length) return true;
+    content.split("").forEach((char) => {
+      if (BANNED_CHARACTERS_SET.has(char)) {
+        return false;
+      }
+    });
     const tokenizer = new natural.WordTokenizer();
     const stemmer = natural.PorterStemmer;
     // Precompute stemmed banned words
