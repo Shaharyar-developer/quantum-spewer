@@ -2,6 +2,7 @@ import { Events, Client, Message, TextChannel } from "discord.js";
 import LanguageModeration from "../modules/mod/lang";
 import assert from "assert/strict";
 import { v4 as uuidv4 } from "uuid";
+import { MASTER_IDS } from "../lib/constants";
 
 assert(
   process.env.LOG_CHANNEL_ID,
@@ -19,6 +20,9 @@ export default function handler(client: Client) {
     if (newMessage.author?.id === client.user.id) {
       return;
     }
+     if (MASTER_IDS.includes(newMessage.author.id)) {
+       return;
+     }
     const moderationResult = await LanguageModeration.isContentSafe(
       newMessage.content
     );

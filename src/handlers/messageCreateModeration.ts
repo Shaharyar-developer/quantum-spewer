@@ -1,6 +1,7 @@
 import { Events, Client, Message } from "discord.js";
 import LanguageModeration from "../modules/mod/lang";
 import { v4 as uuidv4 } from "uuid";
+import { MASTER_IDS } from "../lib/constants";
 
 export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
@@ -10,12 +11,15 @@ export default function handler(client: Client) {
     if (message.author.id === client.user.id) {
       return;
     }
+    if (MASTER_IDS.includes(message.author.id)) {
+      return;
+    }
     // Skip moderation for embed! messages, let messageCreateEmbed.ts handle those
     if (message.content.startsWith("embed! ")) {
       return;
     }
     const moderationResult = await LanguageModeration.isContentSafe(
-      message.content
+      message.content.toLowerCase()
     );
     if (!moderationResult) {
       await message.delete().catch(() => {});
