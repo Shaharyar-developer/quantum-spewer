@@ -39,6 +39,5 @@ export function getRandomWord(): Promise<string> {
     })
     .catch((error) => {
       console.error("Error fetching random word:", error);
-      throw error;
     });
 }
