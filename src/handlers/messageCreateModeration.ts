@@ -14,8 +14,8 @@ export default function handler(client: Client) {
     if (MASTER_IDS.includes(message.author.id)) {
       return;
     }
-    // Skip moderation for embed! messages, let messageCreateEmbed.ts handle those
-    if (message.content.startsWith("embed! ")) {
+    // Skip moderation for text commands handled by the dynamic system
+    if (message.content.match(/^\w+!\s/)) {
       return;
     }
     const moderationResult = await LanguageModeration.isContentSafe(

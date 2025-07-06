@@ -5,7 +5,9 @@ export default function handler(client: Client) {
   client.on(Events.MessageCreate, async (message: Message) => {
     if (!client.user) return;
     if (message.author.id === client.user.id) return;
+    
     const MORSE_CODE_CHANNEL_ID = process.env.MORSE_CODE_CHANNEL_ID;
+
     // Handle messages in the dedicated morse code channel
     if (
       MORSE_CODE_CHANNEL_ID &&
@@ -58,43 +60,6 @@ export default function handler(client: Client) {
           ],
         });
         return;
-      }
-    }
-    // Handle messages starting with morse! in any channel
-    if (
-      message.content &&
-      message.content.trim().toLowerCase().startsWith("morse!")
-    ) {
-      const text = message.content.slice(6).trim();
-      if (text.length > 0) {
-        const morseEncoded = morseCode.encode(text);
-        await(message.channel as TextChannel).send({
-          embeds: [
-            {
-              description: `**From:** <@${message.author.id}>\n\n\`${morseEncoded}\``,
-              color: 0x89b4fa,
-            },
-          ],
-          components: [
-            {
-              type: 1, // ActionRow
-              components: [
-                {
-                  type: 2, // Button
-                  style: 2, // Secondary
-                  label: "Show Translation",
-                  custom_id: `show-translation-${message.id}`,
-                },
-                {
-                  type: 2, // Button
-                  style: 4, // Danger
-                  label: "Delete",
-                  custom_id: `delete-morse-${message.id}-${message.author.id}`,
-                },
-              ],
-            },
-          ],
-        });
       }
     }
   });

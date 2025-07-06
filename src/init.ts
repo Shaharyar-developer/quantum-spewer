@@ -53,11 +53,10 @@ import handleClientReady from "./handlers/clientReady";
 import handleInteractionCreate from "./handlers/interactionCreate";
 import handleMessageUpdateModeration from "./handlers/messageUpdateModeration";
 import handleMessageCreateModeration from "./handlers/messageCreateModeration";
-import handleMessageCreateEmbed from "./handlers/messageCreateEmbed";
-import handleMessageCreateEncodeDecode from "./handlers/messageCreateEncodeDecode";
 import handleMessageCreateFunFact from "./handlers/messageCreateFunFact";
 import handleMessageCreateInsult from "./handlers/messageCreateInsult";
 import handleMessageCreateMorse from "./handlers/messageCreateMorse";
+import handleTextCommands from "./handlers/textCommands";
 
 export const init = async (token: string) => {
   const client = new Client({
@@ -72,13 +71,12 @@ export const init = async (token: string) => {
   // Register all event handlers
   handleClientReady(client, MASTER_IDS, MODERATION_ROLE_IDS, getRandomWord);
   handleMessageCreateModeration(client);
-  handleMessageCreateEmbed(client);
-  handleMessageCreateEncodeDecode(client);
   handleMessageCreateFunFact(client);
   handleMessageCreateInsult(client);
   handleMessageCreateMorse(client);
   handleMessageUpdateModeration(client);
   handleInteractionCreate(client, commands, cooldowns);
+  handleTextCommands(client);
 
   client.login(token);
 };
