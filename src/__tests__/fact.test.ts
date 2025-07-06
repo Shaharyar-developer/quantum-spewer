@@ -1,4 +1,13 @@
-import { expect, jest, describe, afterEach, it } from "bun:test";
+import { expect, jest, describe, afterEach, it, mock } from "bun:test";
+
+// Mock the facts module
+mock.module("../modules/facts", () => ({
+  UselessFact: {
+    getRandomFact: jest.fn(),
+    getTodayFact: jest.fn(),
+  },
+}));
+
 import { UselessFact } from "../modules/facts";
 
 describe("UselessFact", () => {
@@ -8,9 +17,9 @@ describe("UselessFact", () => {
 
   describe("getRandomFact", () => {
     it("returns mocked fact text", async () => {
-      jest
-        .spyOn(UselessFact, "getRandomFact")
-        .mockResolvedValue("Mocked random fact");
+      (UselessFact.getRandomFact as jest.Mock).mockResolvedValue(
+        "Mocked random fact"
+      );
 
       const fact = await UselessFact.getRandomFact();
       expect(fact).toBe("Mocked random fact");
@@ -19,9 +28,9 @@ describe("UselessFact", () => {
 
   describe("getTodayFact", () => {
     it("returns mocked fact text", async () => {
-      jest
-        .spyOn(UselessFact, "getTodayFact")
-        .mockResolvedValue("Mocked today fact");
+      (UselessFact.getTodayFact as jest.Mock).mockResolvedValue(
+        "Mocked today fact"
+      );
 
       const fact = await UselessFact.getTodayFact();
       expect(fact).toBe("Mocked today fact");

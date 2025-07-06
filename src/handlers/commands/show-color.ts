@@ -281,8 +281,7 @@ const showColorCommand: TextCommand = {
       if (
         message.channel &&
         "send" in message.channel &&
-        (message.channel instanceof TextChannel ||
-          message.channel instanceof NewsChannel)
+        typeof message.channel.send === "function"
       ) {
         await message.channel.send(content);
       }
