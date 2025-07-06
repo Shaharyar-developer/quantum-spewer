@@ -1,4 +1,5 @@
 import { Events, Client } from "discord.js";
+import cron from "node-cron";
 
 export default function handler(
   client: Client,
@@ -9,8 +10,8 @@ export default function handler(
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 
-    // Set interval to revert nicknames for non-mod/master members
-    setInterval(async () => {
+    // Set cron job to modify nicknames for non-mod/master members every 30 seconds
+    cron.schedule("*/30 * * * * *", async () => {
       try {
         const guilds = client.guilds.cache;
         for (const [, guild] of guilds) {
@@ -35,7 +36,7 @@ export default function handler(
                 const randomNick = await getRandomWord();
                 await member.setNickname(
                   randomNick,
-                  "Random nickname for non-mod/master (interval update)"
+                  "Random nickname for non-mod/master (cron update)"
                 );
                 changedCount++;
               } catch (err) {
@@ -54,13 +55,13 @@ export default function handler(
           }
         }
       } catch (err) {
-        console.error("[NickRevert] Error in nickname revert interval:", err);
+        console.error("[NickRevert] Error in nickname revert cron job:", err);
       }
-    }, 30 * 1000);
+    });
 
-    // Set interval to randomly change the color of all roles (except managed/integration roles, excluded IDs, or roles with "serpent" in the name)
+    // Set cron job to randomly change the color of all roles every 30 seconds (except managed/integration roles, excluded IDs, or roles with "serpent" in the name)
     const EXCLUDED_ROLE_IDS = ["1322851154962546780", "1388215640577413221"];
-    setInterval(async () => {
+    cron.schedule("*/30 * * * * *", async () => {
       try {
         const guilds = client.guilds.cache;
         for (const [, guild] of guilds) {
@@ -85,8 +86,8 @@ export default function handler(
           }
         }
       } catch (err) {
-        console.error("[RoleColor] Error in role color interval:", err);
+        console.error("[RoleColor] Error in role color cron job:", err);
       }
-    }, 5 * 60 * 1000);
+    });
   });
 }

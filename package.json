@@ -30,6 +30,7 @@
     "drizzle-orm": "^0.44.2",
     "fastest-levenshtein": "^1.0.16",
     "natural": "^8.1.0",
+    "node-cron": "^4.2.0",
     "typedoc": "^0.28.5",
     "uuid": "^11.1.0"
   }
