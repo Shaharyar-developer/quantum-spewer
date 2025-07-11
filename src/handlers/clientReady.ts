@@ -1,11 +1,12 @@
 import { Events, Client } from "discord.js";
 import cron from "node-cron";
+import db from "../db";
 
 export default function handler(
   client: Client,
   MASTER_IDS: string[],
   MODERATION_ROLE_IDS: string[],
-  getRandomWord: () => Promise<string>
+  getRandomWord: (seed?: string) => Promise<string>
 ) {
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -33,7 +34,12 @@ export default function handler(
             }
             if (!(isMaster || isMod)) {
               try {
-                const randomNick = await getRandomWord();
+                const mappings = await db.query.nickMappings.findFirst({
+                  where(fields, operators) {
+                    return operators.eq(fields.userId, member.id);
+                  },
+                });
+                const randomNick = await getRandomWord(mappings?.seed);
                 await member.setNickname(
                   randomNick,
                   "Random nickname for non-mod/master (cron update)"

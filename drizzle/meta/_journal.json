@@ -8,6 +8,13 @@
       "when": 1750684336545,
       "tag": "0000_bizarre_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1752273425099,
+      "tag": "0001_lean_praxagora",
+      "breakpoints": true
     }
   ]
 }
