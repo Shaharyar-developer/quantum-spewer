@@ -16,7 +16,14 @@ export default {
     const nickname = await getRandomWord(seed);
 
     try {
-      await message.member?.setNickname(nickname);
+      let member = message.member;
+      if (!member && message.guild) {
+        member = await message.guild.members.fetch(message.author.id);
+      }
+      if (!member) {
+        throw new Error("Member not found in guild.");
+      }
+      await member.setNickname(nickname);
       await db.insert(nickMappings).values({
         userId: message.author.id,
         seed: seed,
