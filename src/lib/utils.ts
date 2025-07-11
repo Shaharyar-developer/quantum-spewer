@@ -3,6 +3,8 @@ import { getRandomChuckNorrisJoke } from "../modules/chuck-norris";
 import { MODERATION_ROLE_IDS, MASTER_IDS } from "./constants";
 import axios from "axios";
 import db from "../db";
+import { nickMappings } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export const gloat = async (name: string): Promise<string> => {
   const joke = await getRandomChuckNorrisJoke();
@@ -44,11 +46,43 @@ export function getRandomWord(seed?: string): Promise<string> {
           const randomIndex = Math.floor(Math.random() * response.data.length);
           return response.data[randomIndex].word;
         } else {
-          throw new Error("Invalid response from seeded word API");
+          console.warn(
+            `[getRandomWord] Datamuse API returned no results for seed: '${seed}'. Falling back to random word API.`
+          );
+          // Fallback to random word API
+          return axios
+            .get("https://random-word.ryanrk.com/api/en/word/random")
+            .then((fallbackResponse) => {
+              if (fallbackResponse.data && fallbackResponse.data[0]) {
+                return fallbackResponse.data[0];
+              } else {
+                throw new Error("Fallback random word API also failed.");
+              }
+            });
         }
       })
       .catch((error) => {
-        console.error("Error fetching seeded random word:", error);
+        console.error(
+          `[getRandomWord] Error fetching seeded random word for seed '${seed}':`,
+          error
+        );
+        // Fallback to random word API on error
+        return axios
+          .get("https://random-word.ryanrk.com/api/en/word/random")
+          .then((fallbackResponse) => {
+            if (fallbackResponse.data && fallbackResponse.data[0]) {
+              return fallbackResponse.data[0];
+            } else {
+              throw new Error("Fallback random word API also failed.");
+            }
+          })
+          .catch((fallbackError) => {
+            console.error(
+              `[getRandomWord] Fallback random word API failed:`,
+              fallbackError
+            );
+            return "nickname";
+          });
       });
   } else {
     const url = "https://random-word.ryanrk.com/api/en/word/random";
@@ -62,7 +96,47 @@ export function getRandomWord(seed?: string): Promise<string> {
         }
       })
       .catch((error) => {
-        console.error("Error fetching random word:", error);
+        console.error("[getRandomWord] Error fetching random word:", error);
+        return "nickname";
       });
   }
 }
+
+export const findUserMappings = async (
+  userId: string
+): Promise<{ seed: string }[]> => {
+  try {
+    const mappings = await db.query.nickMappings.findMany({
+      where(fields, operators) {
+        return operators.eq(fields.userId, userId);
+      },
+    });
+    return mappings.map((mapping) => ({ seed: mapping.seed }));
+  } catch (error) {
+    console.error("Error fetching user mappings:", error);
+    return [];
+  }
+};
+export const insertOrUpdateUserMapping = async (
+  userId: string,
+  seed: string
+): Promise<void> => {
+  try {
+    const existingMapping = await db.query.nickMappings.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.userId, userId);
+      },
+    });
+
+    if (existingMapping) {
+      await db
+        .update(nickMappings)
+        .set({ seed })
+        .where(eq(nickMappings.userId, userId));
+    } else {
+      await db.insert(nickMappings).values({ userId, seed });
+    }
+  } catch (error) {
+    console.error("Error inserting or updating user mapping:", error);
+  }
+};

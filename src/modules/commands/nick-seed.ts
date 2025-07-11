@@ -5,7 +5,11 @@ import {
   MessageFlags,
 } from "discord.js";
 
-import { getRandomWord, hasModerationRole } from "../../lib/utils";
+import {
+  getRandomWord,
+  hasModerationRole,
+  insertOrUpdateUserMapping,
+} from "../../lib/utils";
 import db from "../../db";
 import { nickMappings } from "../../db/schema";
 
@@ -45,10 +49,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
 
   try {
     await interaction?.guild?.members.cache.get(user.id)?.setNickname(nickname);
-    await db.insert(nickMappings).values({
-      userId: user.id,
-      seed: seed,
-    });
+    await insertOrUpdateUserMapping(user.id, seed);
 
     const embed = new EmbedBuilder()
       .setTitle("Nickname Set")

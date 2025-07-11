@@ -1,7 +1,7 @@
 import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import db from "../../db";
-import { getRandomWord } from "../../lib/utils";
+import { getRandomWord, insertOrUpdateUserMapping } from "../../lib/utils";
 import { nickMappings } from "../../db/schema";
 
 export default {
@@ -12,7 +12,10 @@ export default {
   execute: async (message: Message, args: string[]) => {
     await message.delete().catch(() => {});
 
-    const seed = Math.floor(Math.random() * 1000000).toString();
+    const seed =
+      args.length > 0
+        ? args.join(" ")
+        : Math.floor(Math.random() * 1000000).toString();
     const nickname = await getRandomWord(seed);
 
     try {
@@ -24,10 +27,7 @@ export default {
         throw new Error("Member not found in guild.");
       }
       await member.setNickname(nickname);
-      await db.insert(nickMappings).values({
-        userId: message.author.id,
-        seed: seed,
-      });
+      await insertOrUpdateUserMapping(message.author.id, seed);
     } catch (error) {
       console.error("Error setting nickname:", error);
       const errorEmbed = new EmbedBuilder()
