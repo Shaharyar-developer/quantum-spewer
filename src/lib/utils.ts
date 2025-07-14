@@ -140,3 +140,175 @@ export const insertOrUpdateUserMapping = async (
     console.error("Error inserting or updating user mapping:", error);
   }
 };
+
+export const mapD2ItemType = (itemType: number): string => {
+  switch (itemType) {
+    case 0:
+      return "None";
+    case 1:
+      return "Currency";
+    case 2:
+      return "Armor";
+    case 3:
+      return "Weapon";
+    case 7:
+      return "Message";
+    case 8:
+      return "Engram";
+    case 9:
+      return "Consumable";
+    case 10:
+      return "Exchange Material";
+    case 11:
+      return "Mission Reward";
+    case 12:
+      return "Quest Step";
+    case 13:
+      return "Quest Step Complete";
+    case 14:
+      return "Emblem";
+    case 15:
+      return "Quest";
+    case 16:
+      return "Subclass";
+    case 17:
+      return "Clan Banner";
+    case 18:
+      return "Aura";
+    case 19:
+      return "Mod";
+    case 20:
+      return "Dummy";
+    case 21:
+      return "Ship";
+    case 22:
+      return "Vehicle";
+    case 23:
+      return "Emote";
+    case 24:
+      return "Ghost";
+    case 25:
+      return "Package";
+    case 26:
+      return "Bounty";
+    case 27:
+      return "Wrapper";
+    case 28:
+      return "Seasonal Artifact";
+    case 29:
+      return "Finisher";
+    case 30:
+      return "Pattern";
+    default:
+      return `Unknown (${itemType})`;
+  }
+};
+
+export const mapD2ItemSubType = (itemSubType: number): string => {
+  switch (itemSubType) {
+    case 0:
+      return "None";
+    case 1:
+      return "Crucible";
+    case 2:
+      return "Vanguard";
+    case 5:
+      return "Exotic";
+    case 6:
+      return "Auto Rifle";
+    case 7:
+      return "Shotgun";
+    case 8:
+      return "Machine Gun";
+    case 9:
+      return "Hand Cannon";
+    case 10:
+      return "Rocket Launcher";
+    case 11:
+      return "Fusion Rifle";
+    case 12:
+      return "Sniper Rifle";
+    case 13:
+      return "Pulse Rifle";
+    case 14:
+      return "Scout Rifle";
+    case 16:
+      return "CRM";
+    case 17:
+      return "Sidearm";
+    case 18:
+      return "Sword";
+    case 19:
+      return "Mask";
+    case 20:
+      return "Shader";
+    case 21:
+      return "Ornament";
+    case 22:
+      return "Fusion Rifle Line";
+    case 23:
+      return "Grenade Launcher";
+    case 24:
+      return "Submachine Gun";
+    case 25:
+      return "Trace Rifle";
+    case 26:
+      return "Helmet";
+    case 27:
+      return "Gauntlets";
+    case 28:
+      return "Chest Armor";
+    case 29:
+      return "Leg Armor";
+    case 30:
+      return "Class Armor";
+    case 31:
+      return "Bow";
+    case 32:
+      return "Dummy Repeatable Bounty";
+    case 33:
+      return "Glaive";
+    default:
+      return `Unknown (${itemSubType})`;
+  }
+};
+
+export const mapD2DamageType = (damageType: number): string => {
+  switch (damageType) {
+    case 0:
+      return "None";
+    case 1:
+      return "Kinetic";
+    case 2:
+      return "Arc";
+    case 3:
+      return "Solar";
+    case 4:
+      return "Void";
+    case 5:
+      return "Raid";
+    case 6:
+      return "Stasis";
+    case 7:
+      return "Strand";
+    default:
+      return `Unknown (${damageType})`;
+  }
+};
+
+export const mapD2AmmoType = (ammoType: number): string => {
+  switch (ammoType) {
+    case 0:
+      return "None";
+    case 1:
+      return "Primary";
+    case 2:
+      return "Special";
+    case 3:
+      return "Heavy";
+    case 4:
+      return "Unknown";
+    default:
+      return `Unknown (${ammoType})`;
+  }
+};
