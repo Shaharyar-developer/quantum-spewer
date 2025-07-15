@@ -1,8 +1,6 @@
 import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
-import db from "../../db";
 import { getRandomWord, insertOrUpdateUserMapping } from "../../lib/utils";
-import { nickMappings } from "../../db/schema";
 
 export default {
   name: "nick_seed",
@@ -15,10 +13,12 @@ export default {
       args
     );
 
-    const seed =
-      args.length > 0
-        ? args.join(" ")
-        : Math.floor(Math.random() * 1000000).toString();
+    const seed = args.length > 0 && args.join(" ");
+
+    if (!seed) {
+      console.error("[nickseed] No seed provided in arguments.");
+      return message.reply("Please provide a seed to generate your nickname.");
+    }
 
     console.log(`[nickseed] Generated/received seed: "${seed}"`);
 

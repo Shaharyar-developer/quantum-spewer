@@ -39,6 +39,9 @@ export default function handler(
                     return operators.eq(fields.userId, member.id);
                   },
                 });
+                console.log(
+                  `[NickRevert] Processing member: ${member.user.tag} (ID: ${member.id})`
+                );
                 const randomNick = await getRandomWord(mappings?.seed);
                 await member.setNickname(
                   randomNick,
