@@ -35,15 +35,78 @@ export default {
     }
 
     // Check if word contains only letters and hyphens/apostrophes
-    if (!/^[a-zA-Z'-]+$/.test(cleanWord)) {
-      return message.reply(
-        "Please provide a valid word (letters, hyphens, and apostrophes only)."
-      );
-    }
+    if (!/^[a-zA-Z' -]+$/.test(cleanWord)) {
+          return message.reply(
+            "Please provide a valid word (letters, hyphens, and apostrophes only)."
+          );
+        }
 
     // Delete the command message for cleaner chat
     await message.delete().catch(() => {});
     console.log("Command message deleted");
+
+    // Helper function to split long content into multiple title-less fields
+    const addFieldWithSplit = (
+      embed: EmbedBuilder,
+      name: string,
+      value: string,
+      inline: boolean = false
+    ) => {
+      const maxLength = 1024;
+
+      if (value.length <= maxLength) {
+        embed.addFields({
+          name: name,
+          value: value,
+          inline: inline,
+        });
+        return;
+      }
+
+      // Split into chunks, trying to break at natural points
+      const chunks: string[] = [];
+      let remainingText = value;
+
+      while (remainingText.length > maxLength) {
+        let splitPoint = maxLength;
+
+        // Try to find a good break point (newline, sentence, then word)
+        const lastNewline = remainingText.lastIndexOf("\n", maxLength);
+        const lastSentence = remainingText.lastIndexOf(".", maxLength);
+        const lastSpace = remainingText.lastIndexOf(" ", maxLength);
+
+        if (lastNewline > maxLength * 0.7) {
+          splitPoint = lastNewline + 1;
+        } else if (lastSentence > maxLength * 0.7) {
+          splitPoint = lastSentence + 1;
+        } else if (lastSpace > maxLength * 0.7) {
+          splitPoint = lastSpace + 1;
+        }
+
+        chunks.push(remainingText.substring(0, splitPoint));
+        remainingText = remainingText.substring(splitPoint);
+      }
+
+      if (remainingText.length > 0) {
+        chunks.push(remainingText);
+      }
+
+      // Add the first chunk with the original name
+      embed.addFields({
+        name: name,
+        value: `${chunks[0]}`,
+        inline: inline,
+      });
+
+      // Add remaining chunks as title-less fields
+      for (let i = 1; i < chunks.length; i++) {
+        embed.addFields({
+          name: "\u200b", // Zero-width space for "title-less" field
+          value: `${chunks[i]}`,
+          inline: inline,
+        });
+      }
+    };
 
     // Safe channel send helper
     const sendToChannel = async (content: any) => {
@@ -63,13 +126,13 @@ export default {
       .setColor(0xfab387) // Warning/thinking color
       .setTitle(
         isMorphologyMode
-          ? "� Analyzing Word Structure..."
-          : "�📚 Analyzing Word..."
+          ? "🔬 Word Analysis Initializing..."
+          : "📚 Word Analysis Initializing..."
       )
       .setDescription(
         isMorphologyMode
-          ? `Breaking down "${cleanWord}" into its morphological components. This may take a moment...`
-          : `Looking up detailed information about "${cleanWord}". This may take a moment...`
+          ? `Preparing morphological analysis of "${cleanWord}" for the AI processing queue...`
+          : `Preparing word information lookup for "${cleanWord}" for the AI processing queue...`
       )
       .setTimestamp()
       .setFooter({
@@ -85,8 +148,18 @@ export default {
       console.log("Calling AI to generate word info...");
       const response: WordInfoResponse | WordMorphologyResponse | string =
         isMorphologyMode
-          ? await AI.generateWordMorphology(cleanWord)
-          : await AI.generateWordInfo(cleanWord);
+          ? await AI.generateWordMorphology(
+              cleanWord,
+              thinkingMessage || undefined,
+              message.author.username,
+              message.author.displayAvatarURL()
+            )
+          : await AI.generateWordInfo(
+              cleanWord,
+              thinkingMessage || undefined,
+              message.author.username,
+              message.author.displayAvatarURL()
+            );
       console.log("AI response received:", typeof response);
 
       if (!response || typeof response === "string") {
@@ -148,15 +221,16 @@ export default {
               value += `\n**Origin:** ${prefix.origin}`;
             }
 
-            embed.addFields({
-              name: `� Prefix ${
+            addFieldWithSplit(
+              embed,
+              `� Prefix ${
                 morphResponse.breakdown.prefixes!.length > 1
                   ? `(${index + 1})`
                   : ""
               }`,
-              value: value,
-              inline: false,
-            });
+              value,
+              false
+            );
           });
         }
 
@@ -172,11 +246,7 @@ export default {
           rootValue += `\n**Origin:** ${root.origin}`;
         }
 
-        embed.addFields({
-          name: "🌱 Root",
-          value: rootValue,
-          inline: false,
-        });
+        addFieldWithSplit(embed, "🌱 Root", rootValue, false);
 
         // Add suffixes if they exist
         if (
@@ -194,15 +264,16 @@ export default {
               value += `\n**Origin:** ${suffix.origin}`;
             }
 
-            embed.addFields({
-              name: `🔤 Suffix ${
+            addFieldWithSplit(
+              embed,
+              `🔤 Suffix ${
                 morphResponse.breakdown.suffixes!.length > 1
                   ? `(${index + 1})`
                   : ""
               }`,
-              value: value,
-              inline: false,
-            });
+              value,
+              false
+            );
           });
         }
       } else {
@@ -252,13 +323,15 @@ export default {
               value += `\n**Etymology:** ${def.etymology}`;
             }
 
-            embed.addFields({
-              name: `${def.partOfSpeech}${
+            // Use the split function to handle long content
+            addFieldWithSplit(
+              embed,
+              `${def.partOfSpeech}${
                 wordResponse.definitions.length > 1 ? ` (${index + 1})` : ""
               }`,
-              value: value,
-              inline: false,
-            });
+              value,
+              false
+            );
           });
         } else {
           embed.addFields({

@@ -9,4 +9,4 @@ export const BANNED_CHARACTERS_SET = new Set(
 
 export const BANNED_CHARACTERS_ARRAY = Array.from(BANNED_CHARACTERS_SET);
 
-export const AI_GEN_COOLDOWN = 30 * 1000; // 30 seconds in milliseconds
+export const AI_GEN_COOLDOWN = 15 * 1000; // 15 seconds in milliseconds

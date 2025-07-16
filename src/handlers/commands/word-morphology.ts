@@ -55,9 +55,9 @@ export default {
     // Send initial "thinking" message
     const thinkingEmbed = new EmbedBuilder()
       .setColor(0xfab387) // Warning/thinking color
-      .setTitle("🔬 Analyzing Word Structure...")
+      .setTitle("🔬 Word Analysis Initializing...")
       .setDescription(
-        `Breaking down "${word}" into its morphological components. This may take a moment...`
+        `Preparing morphological analysis of "${word}" for the AI processing queue...`
       )
       .setTimestamp()
       .setFooter({
@@ -72,7 +72,12 @@ export default {
     try {
       console.log("Calling AI to generate morphology breakdown...");
       const response: WordMorphologyResponse | string =
-        await AI.generateWordMorphology(word);
+        await AI.generateWordMorphology(
+          word,
+          thinkingMessage || undefined,
+          message.author.username,
+          message.author.displayAvatarURL()
+        );
       console.log("AI response received:", typeof response);
 
       if (!response || typeof response === "string") {

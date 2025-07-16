@@ -2,16 +2,39 @@ import ai from "../../lib/ai";
 import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 
-const quantumFactCommand: TextCommand = {
-  name: "quantum-mechanics-fact",
-  description: "Generate a random quantum physics fact using Gemini AI.",
-  aliases: ["qm-fact", "quantum-fact"],
-  cooldown: 60, // 1 minute cooldown
+const melancholicWhimsyCommand: TextCommand = {
+  name: "melancholic-whimsy",
+  description:
+    "Generate a melancholic poem given a text prompt in Fenryx's style.",
+  aliases: ["melancholy", "sad-poetry"],
+  cooldown: 60,
   execute: async (message: Message, args: string[]) => {
-    console.log("=== QM-FACT COMMAND EXECUTED ===");
+    console.log("=== MELANCHOLIC-WHIMSY COMMAND EXECUTED ===");
     console.log("User:", message.author.username);
     console.log("Channel:", message.channel.id);
     console.log("Args:", args);
+
+    // Validate input
+    const text = args.join(" ");
+    if (!text || text.trim().length === 0) {
+      console.log("ERROR: No text provided for melancholic whimsy");
+      const errorEmbed = new EmbedBuilder()
+        .setColor(0xf38ba8) // Error color
+        .setTitle("⚠️ Error")
+        .setDescription(
+          "Please provide some text for the melancholic poem generation."
+        )
+        .setTimestamp();
+
+      // Safe channel send helper for validation error
+      if (
+        "send" in message.channel &&
+        typeof message.channel.send === "function"
+      ) {
+        await message.channel.send({ embeds: [errorEmbed] });
+      }
+      return;
+    }
 
     // Delete the command message for cleaner chat
     await message.delete().catch(() => {});
@@ -33,9 +56,9 @@ const quantumFactCommand: TextCommand = {
     // Send initial "thinking" message
     const thinkingEmbed = new EmbedBuilder()
       .setColor(0xfab387) // Warning/thinking color
-      .setTitle("🧠 Quantum Fact Request Initializing...")
+      .setTitle("🖋️ Melancholic Poem Request Initializing...")
       .setDescription(
-        "Preparing your quantum fact request for the AI processing queue..."
+        "Preparing your melancholic poem request for the AI processing queue..."
       )
       .setTimestamp()
       .setFooter({
@@ -48,33 +71,34 @@ const quantumFactCommand: TextCommand = {
     console.log("Thinking message sent:", !!thinkingMessage);
 
     try {
-      console.log("Adding quantum fact generation task to AI queue...");
+      console.log("Adding melancholic whimsy generation task to AI queue...");
       console.log("AI Queue Status:", ai.getQueueStatus());
 
-      // Generate a quantum physics fact (now uses queue system with status updates)
-      const fact = await ai.generateQuantumPhysicsFact(
+      // Generate a melancholic poem (now uses queue system with status updates)
+      const result = await ai.generateMelancholicWhimsy(
+        text,
         thinkingMessage || undefined,
         message.author.username,
         message.author.displayAvatarURL()
       );
       console.log(
-        "AI queue task completed, fact received:",
-        fact.substring(0, 100) + "..."
+        "AI queue task completed, poem received:",
+        result.substring(0, 100) + "..."
       );
 
-      // Create an embed for the fact
+      // Create an embed for the poem
       const embed = new EmbedBuilder()
-        .setColor(0xcba6f7) // Use hex color format for consistency
-        .setTitle("🔬 Quantum Physics Fact")
-        .setDescription(fact)
+        .setColor(0x6c757d) // Melancholic gray color
+        .setTitle("🌙 Melancholic Poem")
+        .setDescription(`${text.trim()}\n***\n${result}`)
         .setTimestamp()
         .setFooter({
           text: `Requested by ${message.author.username} • Processed via AI Queue`,
           iconURL: message.author.displayAvatarURL(),
         });
 
-      console.log("Updating thinking message with fact...");
-      // Update the thinking message with the actual fact
+      console.log("Updating thinking message with poem...");
+      // Update the thinking message with the actual poem
       if (thinkingMessage && "edit" in thinkingMessage) {
         await thinkingMessage.edit({ embeds: [embed] });
         console.log("Thinking message updated successfully");
@@ -83,14 +107,14 @@ const quantumFactCommand: TextCommand = {
         await sendToChannel({ embeds: [embed] });
       }
     } catch (error) {
-      console.error("Error generating quantum physics fact:", error);
+      console.error("Error generating melancholic poem:", error);
 
       // Error embed for consistency
       const errorEmbed = new EmbedBuilder()
         .setColor(0xf38ba8) // Error color
         .setTitle("⚠️ Error")
         .setDescription(
-          "An error occurred while processing your quantum physics fact request in the AI queue. This may be due to rate limiting or AI service issues. Please try again later."
+          "An error occurred while processing your melancholic poem request in the AI queue. This may be due to rate limiting or AI service issues. Please try again later."
         )
         .setTimestamp();
 
@@ -108,8 +132,8 @@ const quantumFactCommand: TextCommand = {
         await sendToChannel({ embeds: [errorEmbed] });
       }
     }
-    console.log("=== QM-FACT COMMAND COMPLETED ===");
+    console.log("=== MELANCHOLIC-WHIMSY COMMAND COMPLETED ===");
   },
 };
 
-export default quantumFactCommand;
+export default melancholicWhimsyCommand;

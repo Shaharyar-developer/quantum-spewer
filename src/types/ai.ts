@@ -1,6 +1,14 @@
 import { Type } from "@google/genai";
 import { z } from "zod";
 
+// Generic interface for task validation
+export interface TaskValidation<T> {
+  genAiSchema: object;
+  zodSchema: z.ZodSchema<T>;
+  validator: (response: string) => T;
+}
+
+// Word Info schemas and validation
 export const WordInfoResponseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -43,15 +51,14 @@ export const WordInfoResponseSchema = {
             type: Type.STRING,
           },
         },
-        required: ["definition", "partOfSpeech"], // Core required fields
+        required: ["definition", "partOfSpeech"],
       },
     },
   },
-  required: ["word", "definitions"], // Top-level required fields
+  required: ["word", "definitions"],
   propertyOrdering: ["word", "definitions"],
 };
 
-// Dynamically create Zod schema from GenAI schema
 export const WordInfoResponseZodSchema = z.object({
   word: z.string(),
   definitions: z.array(
@@ -67,10 +74,9 @@ export const WordInfoResponseZodSchema = z.object({
   ),
 });
 
-// TypeScript inferred type
 export type WordInfoResponse = z.infer<typeof WordInfoResponseZodSchema>;
 
-// Schema for morphological breakdown
+// Word Morphology schemas and validation
 export const WordMorphologyResponseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -160,35 +166,70 @@ export const WordMorphologyResponseSchema = {
   propertyOrdering: ["word", "breakdown", "derivedMeaning"],
 };
 
-// Zod schema for morphological breakdown
 export const WordMorphologyResponseZodSchema = z.object({
   word: z.string(),
   breakdown: z.object({
-    prefixes: z.array(
-      z.object({
-        morpheme: z.string(),
-        meaning: z.string(),
-        synonyms: z.array(z.string()).optional(),
-        origin: z.string().optional(),
-      })
-    ).optional(),
+    prefixes: z
+      .array(
+        z.object({
+          morpheme: z.string(),
+          meaning: z.string(),
+          synonyms: z.array(z.string()).optional(),
+          origin: z.string().optional(),
+        })
+      )
+      .optional(),
     root: z.object({
       morpheme: z.string(),
       meaning: z.string(),
       synonyms: z.array(z.string()).optional(),
       origin: z.string().optional(),
     }),
-    suffixes: z.array(
-      z.object({
-        morpheme: z.string(),
-        meaning: z.string(),
-        synonyms: z.array(z.string()).optional(),
-        origin: z.string().optional(),
-      })
-    ).optional(),
+    suffixes: z
+      .array(
+        z.object({
+          morpheme: z.string(),
+          meaning: z.string(),
+          synonyms: z.array(z.string()).optional(),
+          origin: z.string().optional(),
+        })
+      )
+      .optional(),
   }),
   derivedMeaning: z.string(),
 });
 
-// TypeScript inferred type for morphological breakdown
 export type WordMorphologyResponse = z.infer<typeof WordMorphologyResponseZodSchema>;
+
+// Validation functions
+export const validateWordInfo = (response: string): WordInfoResponse => {
+  const parsedInfo = JSON.parse(response);
+  const validationResult = WordInfoResponseZodSchema.safeParse(parsedInfo);
+  if (!validationResult.success) {
+    throw new Error("Invalid word information format");
+  }
+  return validationResult.data;
+};
+
+export const validateWordMorphology = (response: string): WordMorphologyResponse => {
+  const parsedInfo = JSON.parse(response);
+  const validationResult = WordMorphologyResponseZodSchema.safeParse(parsedInfo);
+  if (!validationResult.success) {
+    throw new Error("Invalid morphology information format");
+  }
+  return validationResult.data;
+};
+
+// Task validation configurations
+export const TASK_VALIDATIONS: Record<string, TaskValidation<any>> = {
+  "word-info": {
+    genAiSchema: WordInfoResponseSchema,
+    zodSchema: WordInfoResponseZodSchema,
+    validator: validateWordInfo,
+  },
+  "word-morphology": {
+    genAiSchema: WordMorphologyResponseSchema,
+    zodSchema: WordMorphologyResponseZodSchema,
+    validator: validateWordMorphology,
+  },
+};
