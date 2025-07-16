@@ -10,7 +10,8 @@ import {
   User,
 } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
-import { MASTER_IDS } from "../../lib/constants";
+import { MASTER_IDS, POINTS_TABLE } from "../../lib/constants";
+import { createOrUpdateUserPoints } from "../../lib/utils";
 
 interface GameState {
   player1: User;
@@ -485,6 +486,12 @@ async function handleTriggerPull(
       embeds: [deathEmbed],
       components: [],
     });
+    // Update user points
+    await createOrUpdateUserPoints(
+      winner.id,
+      POINTS_TABLE.russian_roulette,
+      true
+    );
 
     // Clean up the game
     activeGames.delete(channel.id);

@@ -3,7 +3,7 @@ import { getRandomChuckNorrisJoke } from "../modules/chuck-norris";
 import { MODERATION_ROLE_IDS, MASTER_IDS } from "./constants";
 import axios from "axios";
 import db from "../db";
-import { nickMappings, keyValTimestamps } from "../db/schema";
+import { nickMappings, keyValTimestamps, userPoints } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -184,6 +184,45 @@ export const insertOrUpdateTimestamp = async (
     }
   } catch (error) {
     console.error("Error inserting or updating timestamp:", error);
+  }
+};
+
+export const getUserPoints = async (userId: string): Promise<number> => {
+  try {
+    const user = await db.query.userPoints.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.userId, userId);
+      },
+    });
+    return user ? user.points : 0;
+  } catch (error) {
+    console.error("Error fetching user points:", error);
+    return 0;
+  }
+};
+export const createOrUpdateUserPoints = async (
+  userId: string,
+  points: number,
+  increment: boolean = false
+): Promise<void> => {
+  try {
+    const existingUser = await db.query.userPoints.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.userId, userId);
+      },
+    });
+
+    if (existingUser) {
+      const newPoints = increment ? existingUser.points + points : points;
+      await db
+        .update(userPoints)
+        .set({ points: newPoints })
+        .where(eq(userPoints.userId, userId));
+    } else {
+      await db.insert(userPoints).values({ userId, points });
+    }
+  } catch (error) {
+    console.error("Error creating or updating user points:", error);
   }
 };
 

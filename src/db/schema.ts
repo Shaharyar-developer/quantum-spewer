@@ -12,3 +12,7 @@ export const keyValTimestamps = p.sqliteTable("key_val_timestamps", {
   value: p.text(),
   timestamp: p.integer().notNull(),
 });
+export const userPoints = p.sqliteTable("user_points", {
+  userId: p.text().primaryKey(),
+  points: p.integer().notNull().default(0),
+});
