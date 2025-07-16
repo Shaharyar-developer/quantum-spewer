@@ -7,3 +7,8 @@ export const nickMappings = p.sqliteTable("nick_mappings", {
   userId: p.text().primaryKey(),
   seed: p.text().notNull(),
 });
+export const keyValTimestamps = p.sqliteTable("key_val_timestamps", {
+  key: p.text().primaryKey(),
+  value: p.text(),
+  timestamp: p.integer().notNull(),
+});

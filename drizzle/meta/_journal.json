@@ -15,6 +15,13 @@
       "when": 1752273425099,
       "tag": "0001_lean_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1752672643295,
+      "tag": "0002_chilly_jimmy_woo",
+      "breakpoints": true
     }
   ]
 }

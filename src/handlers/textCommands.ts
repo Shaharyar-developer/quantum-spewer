@@ -35,12 +35,22 @@ for (const file of textCommandFiles) {
     textCommand.name &&
     typeof textCommand.execute === "function"
   ) {
-    textCommands.set(textCommand.name, textCommand);
+    // Normalize command name (replace hyphens with underscores)
+    const normalizedName = textCommand.name.replace(/-/g, "_");
+    textCommands.set(normalizedName, textCommand);
+    console.log(
+      `Registered command: ${normalizedName} (original: ${textCommand.name})`
+    );
 
     // Also register aliases if they exist
     if (textCommand.aliases) {
       textCommand.aliases.forEach((alias) => {
-        textCommands.set(alias, textCommand);
+        // Normalize alias names too
+        const normalizedAlias = alias.replace(/-/g, "_");
+        textCommands.set(normalizedAlias, textCommand);
+        console.log(
+          `Registered alias: ${normalizedAlias} (original: ${alias})`
+        );
       });
     }
   } else {
@@ -54,10 +64,11 @@ for (const file of textCommandFiles) {
 function parseTextCommand(
   content: string
 ): { command: string; args: string[] } | null {
-  const match = content.match(/^(\w+)!\s*(.*)/);
+  const match = content.match(/^([\w-]+)!\s*(.*)/);
   if (!match || !match[1]) return null;
 
-  const command = match[1]?.toLowerCase();
+  // Normalize hyphens to underscores for command matching
+  const command = match[1]?.toLowerCase().replace(/-/g, "_");
   const args = match[2] ? match[2].split(/\s+/) : [];
 
   return { command, args };

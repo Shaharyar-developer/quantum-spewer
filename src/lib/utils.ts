@@ -5,6 +5,8 @@ import axios from "axios";
 import db from "../db";
 import { nickMappings } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { keyValTimestamps } from "../db/schema";
 
 export const gloat = async (name: string): Promise<string> => {
   const joke = await getRandomChuckNorrisJoke();
@@ -140,6 +142,23 @@ export const insertOrUpdateUserMapping = async (
     console.error("Error inserting or updating user mapping:", error);
   }
 };
+
+export const insertTimestamp = async (
+  key = nanoid(),
+  value: string,
+  timestamp: number
+) => {
+  try {
+    await db.insert(keyValTimestamps).values({
+      key,
+      value,
+      timestamp,
+    });
+  } catch (error) {
+    console.error("Error inserting timestamp:", error);
+  }
+};
+
 
 export const mapD2ItemType = (itemType: number): string => {
   switch (itemType) {

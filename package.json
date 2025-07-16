@@ -22,6 +22,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@google/genai": "^1.9.0",
     "@libsql/client": "^0.15.9",
     "axios": "^1.10.0",
     "bungie-api-ts": "^5.2.0",
@@ -30,9 +31,11 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
     "fastest-levenshtein": "^1.0.16",
+    "nanoid": "^5.1.5",
     "natural": "^8.1.0",
     "node-cron": "^4.2.0",
     "typedoc": "^0.28.5",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.0.5"
   }
 }

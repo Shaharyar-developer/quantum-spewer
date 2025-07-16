@@ -8,6 +8,7 @@ declare global {
 }
 
 assert(process.env.BUNGIE_API_KEY, "BUNGIE_API_KEY is not set");
+assert(process.env.GEMINI_API_KEY, "GEMINI_API_KEY is not set");
 assert(process.env.DISCORD_TOKEN, "DISCORD_TOKEN is not set");
 assert(process.env.CLIENT_ID, "CLIENT_ID is not set");
 assert(process.env.GUILD_ID, "GUILD_ID is not set");
