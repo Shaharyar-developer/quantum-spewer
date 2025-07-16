@@ -53,7 +53,7 @@ class CurrencyError extends Error {
 const currencyCommand: TextCommand = {
   name: "currency",
   description:
-    "Get currency exchange rates. Usage: !currency <from> <to> [amount] or !currency list",
+    "Get currency exchange rates. Usage: currency! <from> <to> [amount] or currency! list",
   aliases: ["currency", "exchange", "rate"],
   cooldown: 5,
   execute: async (message: Message, args: string[]) => {
@@ -103,13 +103,13 @@ async function sendHelpEmbed(message: Message): Promise<void> {
     .setTitle("💱 Currency Exchange Help")
     .setDescription(
       "**Usage:**\n" +
-        "`!currency <from> <to> [amount]` - Convert currency\n" +
-        "`!currency list` - Show available currencies\n\n" +
+        "`currency! <from> <to> [amount]` - Convert currency\n" +
+        "`currency! list` - Show available currencies\n\n" +
         "**Examples:**\n" +
-        "`!currency usd eur` - USD to EUR (1 unit)\n" +
-        "`!currency usd eur 100` - Convert 100 USD to EUR\n" +
-        "`!currency btc usd` - Bitcoin to USD\n" +
-        "`!currency eth btc 2.5` - Convert 2.5 ETH to BTC"
+        "`currency! usd eur` - USD to EUR (1 unit)\n" +
+        "`currency! usd eur 100` - Convert 100 USD to EUR\n" +
+        "`currency! btc usd` - Bitcoin to USD\n" +
+        "`currency! eth btc 2.5` - Convert 2.5 ETH to BTC"
     )
     .setColor(COLORS.success)
     .setTimestamp()
@@ -148,7 +148,7 @@ async function handleCurrencyList(message: Message): Promise<void> {
       .setDescription(
         `**Popular Currencies:**\n${popularList}\n\n` +
           `**Total Available:** ${totalCount} currencies\n\n` +
-          `Use \`!currency <from> <to> [amount]\` to convert between any supported currencies.`
+          `Use \`currency! <from> <to> [amount]\` to convert between any supported currencies.`
       )
       .setColor(COLORS.success)
       .setTimestamp()
@@ -174,7 +174,7 @@ async function handleCurrencyConversion(
   if (args.length < 2) {
     await sendErrorEmbed(
       message,
-      "Please provide both FROM and TO currencies.\nExample: `!currency usd eur 100`",
+      "Please provide both FROM and TO currencies.\nExample: `currency! usd eur 100`",
       "❌ Invalid Usage"
     );
     return;
@@ -221,7 +221,7 @@ async function handleCurrencyConversion(
       if (error.code === "CURRENCY_NOT_FOUND") {
         await sendErrorEmbed(
           message,
-          `One or both currencies (${fromCurrency.toUpperCase()}, ${toCurrency.toUpperCase()}) are not supported.\nUse \`!currency list\` to see available currencies.`,
+          `One or both currencies (${fromCurrency.toUpperCase()}, ${toCurrency.toUpperCase()}) are not supported.\nUse \`currency! list\` to see available currencies.`,
           "❌ Currency Not Found"
         );
       } else {
