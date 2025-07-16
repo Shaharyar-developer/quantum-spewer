@@ -161,9 +161,9 @@ describe("Utils", () => {
       (axios.get as jest.Mock).mockRejectedValue(new Error("API Error"));
 
       const result = await getRandomWord();
-      expect(result).toBeUndefined();
+      expect(result).toBe("nickname");
       expect(consoleSpy).toHaveBeenCalledWith(
-        "Error fetching random word:",
+        "[getRandomWord] Error fetching random word:",
         expect.any(Error)
       );
 
@@ -175,7 +175,7 @@ describe("Utils", () => {
       (axios.get as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await getRandomWord();
-      expect(result).toBeUndefined();
+      expect(result).toBe("nickname");
     });
 
     it("should handle empty API response", async () => {
@@ -183,7 +183,7 @@ describe("Utils", () => {
       (axios.get as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await getRandomWord();
-      expect(result).toBeUndefined();
+      expect(result).toBe("nickname");
     });
   });
 });

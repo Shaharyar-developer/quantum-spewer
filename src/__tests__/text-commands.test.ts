@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest, mock } from "bun:test";
 import { Message, EmbedBuilder, TextChannel } from "discord.js";
-import coinflipCommand from "../handlers/commands/coinflip";
+import coinflipCommand from "../handlers/commands/coin-flip";
 import encodeCommand from "../handlers/commands/encode";
 import decodeCommand from "../handlers/commands/decode";
 import morseCode from "../lib/morse-code";

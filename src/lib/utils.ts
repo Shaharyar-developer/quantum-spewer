@@ -3,10 +3,9 @@ import { getRandomChuckNorrisJoke } from "../modules/chuck-norris";
 import { MODERATION_ROLE_IDS, MASTER_IDS } from "./constants";
 import axios from "axios";
 import db from "../db";
-import { nickMappings } from "../db/schema";
+import { nickMappings, keyValTimestamps } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { keyValTimestamps } from "../db/schema";
 
 export const gloat = async (name: string): Promise<string> => {
   const joke = await getRandomChuckNorrisJoke();
@@ -156,6 +155,35 @@ export const insertTimestamp = async (
     });
   } catch (error) {
     console.error("Error inserting timestamp:", error);
+  }
+};
+
+export const insertOrUpdateTimestamp = async (
+  key: string,
+  value: string,
+  timestamp: number
+) => {
+  try {
+    const existingRecord = await db.query.keyValTimestamps.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.key, key);
+      },
+    });
+
+    if (existingRecord) {
+      await db
+        .update(keyValTimestamps)
+        .set({ value, timestamp })
+        .where(eq(keyValTimestamps.key, key));
+    } else {
+      await db.insert(keyValTimestamps).values({
+        key,
+        value,
+        timestamp,
+      });
+    }
+  } catch (error) {
+    console.error("Error inserting or updating timestamp:", error);
   }
 };
 

@@ -1,9 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 import db from "../db";
-import { insertTimestamp } from "./utils";
+import { keyValTimestamps } from "../db/schema";
+import { insertOrUpdateTimestamp } from "./utils";
 import { AI_GEN_COOLDOWN } from "./constants";
-import { WordInfoResponseSchema, WordInfoResponseZodSchema } from "../types/ai";
-import type { WordInfoResponse } from "../types/ai";
+import {
+  WordInfoResponseSchema,
+  WordInfoResponseZodSchema,
+  WordMorphologyResponseSchema,
+  WordMorphologyResponseZodSchema,
+} from "../types/ai";
+import type { WordInfoResponse, WordMorphologyResponse } from "../types/ai";
 
 class AI {
   private client: GoogleGenAI;
@@ -38,7 +44,7 @@ class AI {
 
   private async recordTimestamp() {
     const currentTime = Date.now();
-    await insertTimestamp(AI.key, "true", currentTime);
+    await insertOrUpdateTimestamp(AI.key, "true", currentTime);
   }
 
   private async generateContent(
@@ -131,10 +137,11 @@ Keep it concise, ideally one or two sentences.`;
       console.log("AI: Rate limit check passed, generating content...");
 
       const systemPrompt = `You are a language expert providing detailed information about words.
-Your task is to give comprehensive definitions, including parts of speech, pronunciation, synonyms, antonyms, examples, and etymology.
-Be thorough and precise, ensuring the information is accurate and well-structured.`;
+    Your task is to give comprehensive definitions, including parts of speech, pronunciation, synonyms, antonyms, examples, and etymology.
+    Be thorough and precise, ensuring the information is accurate and well-structured.
+    Use markdown features like **bold**, *italics*, and \`backticks\` for inline-code-style formatting to be expressive where needed to enhance readability and emphasize important information.`;
 
-      const prompt = `Provide detailed information about the word "${word}".`;
+      const prompt = `Provide detailed and formatted information about the word "${word}".`;
 
       const wordInfo = await this.generateContent(
         systemPrompt,
@@ -161,6 +168,74 @@ Be thorough and precise, ensuring the information is accurate and well-structure
       return validationResult.data;
     } catch (error) {
       console.error("Error generating word information:", error);
+      return "The quantum realm is experiencing some interference right now. Try again later!";
+    }
+  }
+  public async generateWordMorphology(
+    word: string
+  ): Promise<WordMorphologyResponse | string> {
+    console.log("AI: generateWordMorphology called for word:", word);
+    try {
+      // Check if we can generate content (rate limiting)
+      console.log("AI: Checking rate limiting...");
+      if (!(await this.canGenerate())) {
+        console.log("AI: Rate limited, returning early");
+        return "I'm taking a quantum break! Please wait a moment before asking for another morphological breakdown.";
+      }
+
+      console.log("AI: Rate limit check passed, generating content...");
+
+      const systemPrompt = `You are a linguistic expert specializing in etymology and morphology.
+    Your task is to break down words into their morphological components (prefixes, root, suffixes) and provide:
+    1. The meaning of each morpheme
+    2. Synonyms for each morpheme from different languages/origins where applicable
+    3. The origin/etymology of each morpheme
+    4. How these components combine to form the word's meaning
+
+    Be precise and scholarly in your analysis. Include cross-linguistic synonyms when available.
+    For example, for "biology":
+    - "bio" (root meaning "life") might have synonyms like "vita" (Latin), "jiva" (Sanskrit), "ino" (Japanese)
+    - "logy" (suffix meaning "study of") might have synonyms like "scientia" (Latin), "sastra" (Sanskrit), "lār" (Old English)
+
+    Use markdown formatting for emphasis and clarity.`;
+
+      const prompt = `Break down the word "${word}" into its morphological components (prefixes, root word, suffixes).
+    
+    For each component, provide:
+    - The morpheme itself
+    - Its meaning
+    - Synonyms from different languages/origins (like Latin, Greek, Sanskrit, etc.)
+    - The origin/etymology
+    
+    Then explain how these components combine to create the word's overall meaning.
+    
+    Focus on accuracy and include cross-linguistic synonyms where they exist.`;
+
+      const morphologyInfo = await this.generateContent(
+        systemPrompt,
+        prompt,
+        WordMorphologyResponseSchema
+      );
+      console.log("AI: Morphology content generated successfully");
+
+      // Record timestamp only after successful generation
+      await this.recordTimestamp();
+      console.log("AI: Timestamp recorded");
+
+      const parsedInfo = JSON.parse(morphologyInfo);
+      const zodSchema = WordMorphologyResponseZodSchema;
+      const validationResult = zodSchema.safeParse(parsedInfo);
+      if (!validationResult.success) {
+        console.error(
+          "Error validating morphology information:",
+          validationResult.error
+        );
+        return "The quantum realm is experiencing some interference right now. Try again later!";
+      }
+
+      return validationResult.data;
+    } catch (error) {
+      console.error("Error generating morphology information:", error);
       return "The quantum realm is experiencing some interference right now. Try again later!";
     }
   }

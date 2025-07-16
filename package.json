@@ -12,7 +12,8 @@
     "db:migrate": "bun drizzle-kit migrate",
     "db:push": "bun drizzle-kit push",
     "doc:generate": "typedoc --entryPointStrategy Expand src",
-    "doc:clear": "rm -rf docs"
+    "doc:clear": "rm -rf docs",
+    "build": "bun run scripts/build.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

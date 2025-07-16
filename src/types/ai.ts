@@ -69,3 +69,126 @@ export const WordInfoResponseZodSchema = z.object({
 
 // TypeScript inferred type
 export type WordInfoResponse = z.infer<typeof WordInfoResponseZodSchema>;
+
+// Schema for morphological breakdown
+export const WordMorphologyResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    word: {
+      type: Type.STRING,
+    },
+    breakdown: {
+      type: Type.OBJECT,
+      properties: {
+        prefixes: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              morpheme: {
+                type: Type.STRING,
+              },
+              meaning: {
+                type: Type.STRING,
+              },
+              synonyms: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.STRING,
+                },
+              },
+              origin: {
+                type: Type.STRING,
+              },
+            },
+            required: ["morpheme", "meaning"],
+          },
+        },
+        root: {
+          type: Type.OBJECT,
+          properties: {
+            morpheme: {
+              type: Type.STRING,
+            },
+            meaning: {
+              type: Type.STRING,
+            },
+            synonyms: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+              },
+            },
+            origin: {
+              type: Type.STRING,
+            },
+          },
+          required: ["morpheme", "meaning"],
+        },
+        suffixes: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              morpheme: {
+                type: Type.STRING,
+              },
+              meaning: {
+                type: Type.STRING,
+              },
+              synonyms: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.STRING,
+                },
+              },
+              origin: {
+                type: Type.STRING,
+              },
+            },
+            required: ["morpheme", "meaning"],
+          },
+        },
+      },
+      required: ["root"],
+    },
+    derivedMeaning: {
+      type: Type.STRING,
+    },
+  },
+  required: ["word", "breakdown", "derivedMeaning"],
+  propertyOrdering: ["word", "breakdown", "derivedMeaning"],
+};
+
+// Zod schema for morphological breakdown
+export const WordMorphologyResponseZodSchema = z.object({
+  word: z.string(),
+  breakdown: z.object({
+    prefixes: z.array(
+      z.object({
+        morpheme: z.string(),
+        meaning: z.string(),
+        synonyms: z.array(z.string()).optional(),
+        origin: z.string().optional(),
+      })
+    ).optional(),
+    root: z.object({
+      morpheme: z.string(),
+      meaning: z.string(),
+      synonyms: z.array(z.string()).optional(),
+      origin: z.string().optional(),
+    }),
+    suffixes: z.array(
+      z.object({
+        morpheme: z.string(),
+        meaning: z.string(),
+        synonyms: z.array(z.string()).optional(),
+        origin: z.string().optional(),
+      })
+    ).optional(),
+  }),
+  derivedMeaning: z.string(),
+});
+
+// TypeScript inferred type for morphological breakdown
+export type WordMorphologyResponse = z.infer<typeof WordMorphologyResponseZodSchema>;

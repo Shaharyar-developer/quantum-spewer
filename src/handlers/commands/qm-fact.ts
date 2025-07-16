@@ -60,7 +60,7 @@ const quantumFactCommand: TextCommand = {
         .setDescription(fact)
         .setTimestamp()
         .setFooter({
-          text: `Requested by ${message.author.username} • Powered by Gemini AI`,
+          text: `Requested by ${message.author.username} • Powered by Quantum Spewer`,
           iconURL: message.author.displayAvatarURL(),
         });
 

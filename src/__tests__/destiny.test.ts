@@ -165,7 +165,7 @@ describe("DestinyManifest", () => {
     });
   });
 
-  describe("downloadTable", () => {
+  describe("downloadItemDefs", () => {
     beforeEach(() => {
       process.env.BUNGIE_API_KEY = "test-api-key";
 
@@ -189,9 +189,7 @@ describe("DestinyManifest", () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockAccess.mockResolvedValue(undefined);
 
-      const result = await destinyManifest.downloadTable(
-        "DestinyInventoryItemDefinition"
-      );
+      const result = await destinyManifest.downloadItemDefs();
       expect(typeof result).toBe("string");
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockAccess).toHaveBeenCalled();
@@ -200,18 +198,18 @@ describe("DestinyManifest", () => {
     it("should handle directory creation errors", async () => {
       mockMkdir.mockRejectedValue(new Error("Permission denied"));
 
-      await expect(
-        destinyManifest.downloadTable("DestinyInventoryItemDefinition")
-      ).rejects.toThrow("Failed to create directory for manifest");
+      await expect(destinyManifest.downloadItemDefs()).rejects.toThrow(
+        "Failed to create directory for manifest"
+      );
     });
 
     it("should handle file write errors", async () => {
       mockMkdir.mockResolvedValue(undefined);
       mockWriteFile.mockRejectedValue(new Error("Disk full"));
 
-      await expect(
-        destinyManifest.downloadTable("DestinyInventoryItemDefinition")
-      ).rejects.toThrow(DestinyManifestError);
+      await expect(destinyManifest.downloadItemDefs()).rejects.toThrow(
+        DestinyManifestError
+      );
     });
 
     it("should handle file verification errors", async () => {
@@ -219,9 +217,7 @@ describe("DestinyManifest", () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockAccess.mockRejectedValue(new Error("File not found"));
 
-      await expect(
-        destinyManifest.downloadTable("DestinyInventoryItemDefinition")
-      ).rejects.toThrow(
+      await expect(destinyManifest.downloadItemDefs()).rejects.toThrow(
         "Failed to verify manifest file was written successfully"
       );
     });

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import db from "../../db";
 import { bannedWords } from "../../db/schema";
-import leventshtein from "fastest-levenshtein";
+import * as leventshtein from "fastest-levenshtein";
 import natural, { removeDiacritics } from "natural";
 import { BANNED_CHARACTERS_SET } from "../../lib/constants";
 

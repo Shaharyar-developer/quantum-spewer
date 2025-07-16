@@ -8,7 +8,7 @@ import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
 } from "discord.js";
-import { getRandomWord, gloat } from "./lib/utils";
+import { getRandomWord } from "./lib/utils";
 import { MASTER_IDS, MODERATION_ROLE_IDS } from "./lib/constants";
 
 export type Command = {
