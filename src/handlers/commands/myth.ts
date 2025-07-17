@@ -1,5 +1,5 @@
 import ai from "../../lib/ai";
-import { Message, EmbedBuilder, TextChannel } from "discord.js";
+import { Message, EmbedBuilder, TextChannel, userMention } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import { MASTER_IDS } from "../../lib/constants";
 
@@ -54,6 +54,7 @@ export default {
 
       // Generate a myth about the user based on their name
       const isMod = MASTER_IDS.includes(message.author.id);
+
       const myth = await ai.generateMyth(
         {
           username: message.author.displayName,
@@ -76,7 +77,7 @@ export default {
       // Create the final embed with the generated myth
       const mythEmbed = new EmbedBuilder()
         .setColor(0x6a0dad) // Mythical color
-        .setTitle(`🌌 Myth of ${message.author.username}`)
+        .setTitle(`🌌 Myth of ${message.author.displayName}`)
         .setDescription(myth)
         .setTimestamp()
         .setFooter({
