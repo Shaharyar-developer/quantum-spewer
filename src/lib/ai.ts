@@ -116,25 +116,6 @@ class AI {
       authorAvatarURL
     );
   }
-  public async generateMyth(
-    props: {
-      username: string;
-      isMod?: boolean;
-    },
-    discordMessage?: Message,
-    authorUsername?: string,
-    authorAvatarURL?: string
-  ): Promise<string> {
-    return aiTaskQueue.addTask(
-      "forgotten-myth",
-      props,
-      0,
-      3,
-      discordMessage,
-      authorUsername,
-      authorAvatarURL
-    );
-  }
 
   // Generic method to add new AI tasks dynamically
   public async addAITask(

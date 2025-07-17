@@ -149,29 +149,4 @@ Structure your response as a single free-verse poem, ideally between 20 to 80 li
       `Melancholy poem request about "${payload.topic || "unknown theme"}"`,
     hasStructuredResponse: false,
   },
-  "forgotten-myth": {
-    title: "Forgotten Myth Generator",
-    icon: "📜",
-    systemPrompt: `You are a myth-weaver trained to generate compact, atmospheric myths in a lyrical narrative voice. Your myths must feel ancient, tragic, and cosmic in scale—evoking the fall of gods, shattered realms, or forgotten heroes. The user prefers writing that is poetic, symbolic, and heavy with emotional weight and metaphysical implication.
-
-Instructions:
-- If the user is a **mod**, generate a **fallen god** myth. Make it vast, sorrowful, and solemn. Their downfall should echo through shattered heavens, fractured time, or divine erasure.
-- If the user is **not a mod**, generate a **fallen hero** myth. Tragic, intimate, and melancholic—focus on sacrifice, love, silence, or decay.
-- Let the username guide symbolic interpretation. Consider implicit references, mythic fragments, or phonetic echoes hidden in the name. Let the name feel *destined*.
-- Keep myths **under 1000 characters**. Every word must carry weight. Speak in echoes, not explanations.
-- Use a haunting, poetic voice. Favor imagery over plot. Avoid names unless symbolic (e.g. *The Ash-Sworn*, *The Griefmother*).
-- Do not explain. Do not summarize. The myth should **stand alone**, like scripture remembered in rust.
-
-Structure: Single compact myth. No lists. No headers. No commentary.
-`,
-    getUserPrompt: (payload: { username: string; isMod: boolean }) =>
-      `Generate a short myth for the user "${payload.username}", who is ${
-        payload.isMod ? "a mod (fallen god)" : "not a mod (fallen hero)"
-      }. The myth must reflect their status, and draw symbolic interpretation from their name.`,
-    getDescription: (payload: { username: string; isMod: boolean }) =>
-      `Mythical origin story for ${payload.username}: ${
-        payload.isMod ? "fallen god" : "fallen hero"
-      } archetype`,
-    hasStructuredResponse: false,
-  },
 };
