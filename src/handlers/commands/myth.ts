@@ -55,13 +55,23 @@ export default {
       // Generate a myth about the user based on their name
       const isMod = MASTER_IDS.includes(message.author.id);
 
+      // Get the actual display name - for non-mods this will be their bot-assigned nickname
+      const actualDisplayName =
+        message.member?.displayName || message.author.displayName;
+
+      console.log("props used", {
+        username: actualDisplayName,
+        globalName: message.author.globalName,
+        isMod,
+      });
+
       const myth = await ai.generateMyth(
         {
-          username: message.author.displayName,
+          username: actualDisplayName,
           isMod,
         },
         thinkingMessage || undefined,
-        message.author.displayName,
+        actualDisplayName,
         message.author.displayAvatarURL()
       );
 
@@ -77,7 +87,7 @@ export default {
       // Create the final embed with the generated myth
       const mythEmbed = new EmbedBuilder()
         .setColor(0x6a0dad) // Mythical color
-        .setTitle(`🌌 Myth of ${message.author.displayName}`)
+        .setTitle(`🌌 Myth of ${actualDisplayName}`)
         .setDescription(myth)
         .setTimestamp()
         .setFooter({
