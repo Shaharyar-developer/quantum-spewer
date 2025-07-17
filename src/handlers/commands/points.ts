@@ -2,7 +2,7 @@ import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import { getUserPoints } from "../../lib/utils";
 
-const pointsCommand: TextCommand = {
+export default {
   name: "points",
   description: "View user points (your own or mention someone else)",
   aliases: ["points", "point", "pts"],
@@ -116,6 +116,4 @@ const pointsCommand: TextCommand = {
       }
     }
   },
-};
-
-export default pointsCommand;
+} as TextCommand;

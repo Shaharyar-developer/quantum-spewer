@@ -3,7 +3,7 @@ import { type TextCommand } from "../../types/textCommand";
 import { getInsult } from "../../modules/insults";
 import { MASTER_IDS } from "../../lib/constants";
 
-const insultCommand: TextCommand = {
+export default {
   name: "insult",
   description: "Insult a mentioned user",
   execute: async (message: Message, args: string[]) => {
@@ -68,6 +68,4 @@ const insultCommand: TextCommand = {
       await sendMsg("Couldn't find that user in this server.");
     }
   },
-};
-
-export default insultCommand;
+} as TextCommand;

@@ -2,7 +2,7 @@ import { Message, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import morseCode from "../../lib/morse-code";
 
-const morseCommand: TextCommand = {
+export default {
   name: "morse",
   description: "Convert text to Morse code with interactive buttons",
   execute: async (message: Message, args: string[]) => {
@@ -44,6 +44,4 @@ const morseCommand: TextCommand = {
 
     await message.delete().catch(() => {});
   },
-};
-
-export default morseCommand;
+} as TextCommand;

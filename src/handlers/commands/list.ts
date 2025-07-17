@@ -2,7 +2,7 @@ import { Message, EmbedBuilder } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import { textCommands } from "../textCommands";
 
-const listCommand: TextCommand = {
+export default {
   name: "list",
   description: "List all available text commands",
   aliases: ["help", "commands"],
@@ -147,6 +147,4 @@ const listCommand: TextCommand = {
       setTimeout(() => sentMessage.delete().catch(() => {}), 30000);
     }
   },
-};
-
-export default listCommand;
+} as TextCommand; 

@@ -266,7 +266,7 @@ const parseColor = (input: string): [number, number, number] | null => {
   return null;
 };
 
-const showColorCommand: TextCommand = {
+export default {
   name: "showcolor",
   description:
     "Show color from various formats: hex, rgb, hsl, hsv, cmyk, lab, oklch, or named colors",
@@ -342,6 +342,4 @@ const showColorCommand: TextCommand = {
 
     await safeSend({ embeds: [embed] });
   },
-};
-
-export default showColorCommand;
+} as TextCommand;

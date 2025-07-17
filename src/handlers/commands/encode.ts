@@ -2,7 +2,7 @@ import { Message, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import morse from "../../lib/morse-code";
 
-const encodeCommand: TextCommand = {
+export default {
   name: "encode",
   description: "Encode text to Morse code with embed",
   execute: async (message: Message, args: string[]) => {
@@ -27,6 +27,4 @@ const encodeCommand: TextCommand = {
     setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
     await message.delete().catch(() => {});
   },
-};
-
-export default encodeCommand;
+} as TextCommand;

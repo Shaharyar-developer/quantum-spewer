@@ -2,7 +2,7 @@ import { Message, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import LanguageModeration from "../../modules/mod/lang";
 
-const embedCommand: TextCommand = {
+export default {
   name: "embed",
   description: "Create an embed from your message",
   executeOnUpdate: true,
@@ -83,6 +83,4 @@ const embedCommand: TextCommand = {
 
     await message.delete().catch(() => {});
   },
-};
-
-export default embedCommand;
+} as TextCommand;

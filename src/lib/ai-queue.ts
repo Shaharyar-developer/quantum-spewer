@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { EmbedBuilder, Message } from "discord.js";
 import { TASK_VALIDATIONS } from "../types/ai";
-import { AI_GEN_COOLDOWN } from "./constants";
+import { AI_GEN_COOLDOWN, TASK_CONFIGS } from "./constants";
 
 export interface AITask {
   id: string;
@@ -26,90 +26,6 @@ export interface TaskConfig {
   getDescription: (payload: any) => string;
   hasStructuredResponse?: boolean;
 }
-
-// Single configuration object that can be extended at will
-export const TASK_CONFIGS: Record<string, TaskConfig> = {
-  "quantum-fact": {
-    title: "Quantum Fact Request",
-    icon: "🧠",
-    systemPrompt: `You are a physics researcher tasked with sharing lesser-known quantum facts. Avoid common knowledge. Be concise, specific, and unafraid to include facts that may be re-evaluated in the future.`,
-    getUserPrompt: () => `Generate a niche, lesser-known quantum physics fact. 
-Prioritize obscure or speculative phenomena—things on the edge of current understanding, 
-possibly debated or not widely known. Avoid generic summaries like superposition or wave-particle duality. 
-Instead, give a fact that feels strange, specific, and possibly subject to change with future discoveries. 
-Keep it concise, ideally one or two sentences.`,
-    getDescription: () => "Your quantum fact request",
-    hasStructuredResponse: false,
-  },
-  "word-info": {
-    title: "Word Information Request",
-    icon: "📚",
-    systemPrompt: `You are a language expert providing concise but comprehensive information about words.
-Your task is to give clear definitions, including parts of speech, pronunciation, synonyms, antonyms, examples, and etymology.
-Be precise and concise - avoid overly verbose explanations. Keep examples short and relevant.
-Use markdown features like **bold**, *italics*, and \`backticks\` for inline-code-style formatting to enhance readability.
-Prioritize clarity and brevity while maintaining accuracy.`,
-    getUserPrompt: (payload) =>
-      `Provide concise but comprehensive information about the word "${payload.word}". Keep explanations clear and brief.`,
-    getDescription: (payload) =>
-      `Your word information request for "${payload.word || "unknown word"}"`,
-    hasStructuredResponse: true,
-  },
-  "word-morphology": {
-    title: "Word Morphology Analysis",
-    icon: "🔬",
-    systemPrompt: `You are a linguistic expert specializing in etymology and morphology.
-Your task is to break down words into their morphological components (prefixes, root, suffixes) and provide:
-1. The meaning of each morpheme
-2. Synonyms for each morpheme from different languages/origins where applicable
-3. The origin/etymology of each morpheme
-4. How these components combine to form the word's meaning
-
-Be precise and concise in your analysis. Include cross-linguistic synonyms when available.
-Keep explanations brief but informative. Use markdown formatting for emphasis and clarity.`,
-    getUserPrompt: (
-      payload
-    ) => `Break down the word "${payload.word}" into its morphological components (prefixes, root word, suffixes).
-
-For each component, provide:
-- The morpheme itself
-- Its meaning (brief)
-- Synonyms from different languages/origins (like Latin, Greek, Sanskrit, etc.)
-- The origin/etymology (concise)
-
-Then explain how these components combine to create the word's overall meaning.
-
-Focus on accuracy and brevity. Include cross-linguistic synonyms where they exist.`,
-    getDescription: (payload) =>
-      `Your morphology analysis request for "${
-        payload.word || "unknown word"
-      }"`,
-    hasStructuredResponse: true,
-  },
-  "melancholic-whimsy": {
-    title: "Melancholic Verse Generator",
-    icon: "🕯️",
-    systemPrompt: `You are a poetic writing assistant trained to generate short narrative poems (20–80 lines) in a somber, tragic, and atmospheric style. The user prefers a tone that is emotionally understated yet viscerally powerful—relying on symbolism, metaphor, contrast, and evocative imagery rather than overt emotional declarations.
-
-Key stylistic characteristics to follow:
-- Use **rhythmic enjambment**, subtle repetition, and **layered metaphor**.
-- Avoid direct sentimentality; imply emotion through **silence**, **visual motifs**, and **environmental decay**.
-- Themes often include **memory**, **loss**, **solitude**, **futility**, and **sacrifice**.
-- Favor minimalist but lyrical descriptions that build atmosphere over exposition.
-- Treat time and space abstractly—bleed the physical with the metaphysical.
-- If a character is implied, depict them obliquely—through what they’ve lost, not who they are.
-- Do not resolve the tragedy. Leave it lingering.
-
-Structure your response as a single free-verse poem, ideally between 20 to 80 lines. Begin immediately with no preamble or explanation.
-`,
-    getUserPrompt: (payload) =>
-      `Write a short poem based on this topic: ${payload.topic}. Follow the style and tone you’ve been instructed to.
-`,
-    getDescription: (payload) =>
-      `Melancholy poem request about "${payload.topic || "unknown theme"}"`,
-    hasStructuredResponse: false,
-  },
-};
 
 export class AITaskQueue extends EventEmitter {
   private queue: AITask[] = [];

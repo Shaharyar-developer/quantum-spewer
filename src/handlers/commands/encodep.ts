@@ -2,7 +2,7 @@ import { Message, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import morse from "../../lib/morse-code";
 
-const encodepCommand: TextCommand = {
+export default {
   name: "encodep",
   description: "Encode text to Morse code (plain text output)",
   execute: async (message: Message, args: string[]) => {
@@ -17,6 +17,4 @@ const encodepCommand: TextCommand = {
     await (message.channel as TextChannel).send(encoded);
     await message.delete().catch(() => {});
   },
-};
-
-export default encodepCommand;
+} as TextCommand;

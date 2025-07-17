@@ -1,8 +1,9 @@
 import ai from "../../lib/ai";
 import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
+import { getRandomQuantumFactTopic } from "../../lib/constants";
 
-const quantumFactCommand: TextCommand = {
+export default {
   name: "quantum-mechanics-fact",
   description: "Generate a random quantum physics fact using Gemini AI.",
   aliases: ["qm-fact", "quantum-fact"],
@@ -53,6 +54,7 @@ const quantumFactCommand: TextCommand = {
 
       // Generate a quantum physics fact (now uses queue system with status updates)
       const fact = await ai.generateQuantumPhysicsFact(
+        getRandomQuantumFactTopic(),
         thinkingMessage || undefined,
         message.author.username,
         message.author.displayAvatarURL()
@@ -110,6 +112,4 @@ const quantumFactCommand: TextCommand = {
     }
     console.log("=== QM-FACT COMMAND COMPLETED ===");
   },
-};
-
-export default quantumFactCommand;
+} as TextCommand;

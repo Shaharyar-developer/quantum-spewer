@@ -2,7 +2,7 @@ import { Message, EmbedBuilder, TextChannel } from "discord.js";
 import { type TextCommand } from "../../types/textCommand";
 import { textCommands } from "../textCommands";
 
-const coinflipCommand: TextCommand = {
+export default {
   name: "coinflip",
   description: "Flip a coin and see the result",
   aliases: ["flip", "cf"],
@@ -29,6 +29,4 @@ const coinflipCommand: TextCommand = {
       await (message.channel as TextChannel).send({ embeds: [embed] });
     }
   },
-};
-
-export default coinflipCommand;
+} as TextCommand;

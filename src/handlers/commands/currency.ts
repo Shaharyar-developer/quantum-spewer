@@ -50,7 +50,7 @@ class CurrencyError extends Error {
   }
 }
 
-const currencyCommand: TextCommand = {
+export default {
   name: "currency",
   description:
     "Get currency exchange rates. Usage: currency! <from> <to> [amount] or currency! list",
@@ -79,7 +79,7 @@ const currencyCommand: TextCommand = {
       );
     }
   },
-};
+} as TextCommand;
 
 async function safeDelete(message: Message): Promise<void> {
   try {
@@ -347,5 +347,3 @@ async function getExchangeRate(
 
   return rate;
 }
-
-export default currencyCommand;

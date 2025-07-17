@@ -50,13 +50,14 @@ class AI {
 
   // Public methods that use the queue system
   public async generateQuantumPhysicsFact(
+    topic: string,
     discordMessage?: Message,
     authorUsername?: string,
     authorAvatarURL?: string
   ): Promise<string> {
     return aiTaskQueue.addTask(
       "quantum-fact",
-      {},
+      { topic },
       1,
       3,
       discordMessage,
@@ -108,6 +109,25 @@ class AI {
     return aiTaskQueue.addTask(
       "melancholic-whimsy",
       { topic: text },
+      0,
+      3,
+      discordMessage,
+      authorUsername,
+      authorAvatarURL
+    );
+  }
+  public async generateMyth(
+    props: {
+      username: string;
+      isMod?: boolean;
+    },
+    discordMessage?: Message,
+    authorUsername?: string,
+    authorAvatarURL?: string
+  ): Promise<string> {
+    return aiTaskQueue.addTask(
+      "forgotten-myth",
+      props,
       0,
       3,
       discordMessage,
