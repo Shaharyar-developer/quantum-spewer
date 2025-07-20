@@ -587,11 +587,45 @@ export function parseConversionInput(args: string[]): {
   toUnit: string;
   isNumberBase?: boolean;
 } | null {
-  if (args.length < 3) return null;
+  // Handle both "convert 1 lb kg" and "convert 1lb kg" formats
+  if (args.length < 2) return null;
 
-  const valueStr = args[0];
-  const fromUnit = args[1];
-  const toUnit = args[2];
+  let valueStr: string;
+  let fromUnit: string;
+  let toUnit: string;
+
+  if (args.length >= 3) {
+    // Standard format: "convert 1 lb kg"
+    const arg0 = args[0];
+    const arg1 = args[1];
+    const arg2 = args[2];
+
+    if (!arg0 || !arg1 || !arg2) return null;
+
+    valueStr = arg0;
+    fromUnit = arg1;
+    toUnit = arg2;
+  } else if (args.length === 2) {
+    // Compact format: "convert 1lb kg" - need to split first arg
+    const firstArg = args[0];
+    const secondArg = args[1];
+
+    if (!firstArg || !secondArg) return null;
+
+    // Try to extract value and unit from first argument
+    const match = firstArg.match(
+      /^([+-]?(?:\d*\.?\d+(?:[eE][+-]?\d+)?|[0-9A-Fa-f]+))([a-zA-Z°'"]+)$/
+    );
+    if (match && match[1] && match[2]) {
+      valueStr = match[1];
+      fromUnit = match[2];
+      toUnit = secondArg;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
 
   if (!valueStr || !fromUnit || !toUnit) return null;
 
