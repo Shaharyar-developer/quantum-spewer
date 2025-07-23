@@ -18,6 +18,12 @@ const data = new SlashCommandBuilder()
       .setName("channel")
       .setDescription("The channel to nuke")
       .setRequired(true)
+  )
+  .addStringOption((option) =>
+    option
+      .setName("channelId")
+      .setDescription("The ID of the channel to nuke (for verification)")
+      .setRequired(true)
   );
 async function execute(interaction: ChatInputCommandInteraction) {
   if (!hasModerationRole(interaction)) {
@@ -28,6 +34,8 @@ async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   const channel = interaction.options.getChannel("channel", true);
+  const channelId = interaction.options.getString("channelId", true);
+
   if (channel.type !== ChannelType.GuildText) {
     return await interaction.editReply({
       content: "You can only nuke text channels.",
@@ -36,6 +44,34 @@ async function execute(interaction: ChatInputCommandInteraction) {
 
   // Cast to TextChannel
   const textChannel = channel as TextChannel;
+
+  // Verify that the provided channel ID matches the selected channel
+  if (channel.id !== channelId) {
+    return await interaction.editReply({
+      content:
+        "⚠️ **SAFETY CHECK FAILED** ⚠️\nThe provided channel ID does not match the selected channel. Please verify the channel ID for safety.\n\n**Selected channel:** <#" +
+        channel.id +
+        ">\n**Provided ID:** `" +
+        channelId +
+        "`",
+    });
+  }
+
+  // Additional safety check for important channels
+  const sensitiveChannelNames = [
+    "rules",
+    "announcements",
+    "welcome",
+    "general",
+    "mod",
+    "admin",
+  ];
+  const channelName = textChannel.name.toLowerCase();
+  if (sensitiveChannelNames.some((name) => channelName.includes(name))) {
+    return await interaction.editReply({
+      content: `⚠️ **WARNING** ⚠️\nYou're attempting to nuke a potentially important channel: **#${textChannel.name}**\n\nThis appears to be a sensitive channel. Please double-check that this is intentional. If you're sure, run the command again.`,
+    });
+  }
 
   // Clone the channel
   const cloned = await textChannel.clone({
