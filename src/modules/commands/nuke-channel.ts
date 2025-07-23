@@ -21,7 +21,7 @@ const data = new SlashCommandBuilder()
   )
   .addStringOption((option) =>
     option
-      .setName("channelId")
+      .setName("channel-id")
       .setDescription("The ID of the channel to nuke (for verification)")
       .setRequired(true)
   );
@@ -34,7 +34,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   const channel = interaction.options.getChannel("channel", true);
-  const channelId = interaction.options.getString("channelId", true);
+  const channelId = interaction.options.getString("channel-id", true);
 
   if (channel.type !== ChannelType.GuildText) {
     return await interaction.editReply({
