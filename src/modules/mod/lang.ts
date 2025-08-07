@@ -4,6 +4,12 @@ import { bannedWords } from "../../db/schema";
 import * as leventshtein from "fastest-levenshtein";
 import natural, { removeDiacritics } from "natural";
 import { BANNED_CHARACTERS_SET } from "../../lib/constants";
+import {
+  RegExpMatcher,
+  TextCensor,
+  englishDataset,
+  englishRecommendedTransformers,
+} from "obscenity";
 
 /**
  * Moderation class for managing and checking banned words in content.
@@ -215,7 +221,6 @@ class LanguageModeration {
     content = removeDiacritics(content.trim());
     content = content.toLowerCase();
     if (!content) return true;
-    if (!LanguageModeration.bannedWords.length) return true;
     content.split("").forEach((char) => {
       if (BANNED_CHARACTERS_SET.has(char)) {
         return false;
@@ -260,6 +265,15 @@ class LanguageModeration {
           }
         }
       }
+    }
+
+    // use the obscenity library for regex matching
+    const matcher = new RegExpMatcher({
+      ...englishDataset.build(),
+      ...englishRecommendedTransformers,
+    });
+    if (matcher.hasMatch(content)) {
+      return false;
     }
     return true;
   }

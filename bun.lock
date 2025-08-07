@@ -16,6 +16,7 @@
         "nanoid": "^5.1.5",
         "natural": "^8.1.0",
         "node-cron": "^4.2.0",
+        "obscenity": "^0.4.4",
         "typedoc": "^0.28.5",
         "uuid": "^11.1.0",
         "zod": "^4.0.5",
@@ -395,6 +396,8 @@
     "node-fetch": ["node-fetch@3.3.2", "", { "dependencies": { "data-uri-to-buffer": "^4.0.0", "fetch-blob": "^3.1.4", "formdata-polyfill": "^4.0.10" } }, "sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA=="],
 
     "object-inspect": ["object-inspect@1.13.4", "", {}, "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew=="],
+
+    "obscenity": ["obscenity@0.4.4", "", {}, "sha512-z5bgosYRNzu95yIkRggCznD6UNGZ9jB35/GDtTu+eDOVmtnHfLJ+rBMpQxsQLKe+WrMdvzvkdlg2NLYaDxWFWA=="],
 
     "opener": ["opener@1.5.2", "", { "bin": { "opener": "bin/opener-bin.js" } }, "sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A=="],
 

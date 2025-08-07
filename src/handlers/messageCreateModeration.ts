@@ -11,9 +11,9 @@ export default function handler(client: Client) {
     if (message.author.id === client.user.id) {
       return;
     }
-    if (MASTER_IDS.includes(message.author.id)) {
-      return;
-    }
+    // if (MASTER_IDS.includes(message.author.id)) {
+    //   return;
+    // }
     // Skip moderation for text commands handled by the dynamic system
     if (message.content.match(/^\w+!\s/)) {
       return;
